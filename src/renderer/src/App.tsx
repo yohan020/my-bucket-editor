@@ -11,6 +11,14 @@ interface Project {
   lastUsed: string // 마지막 사용일
 }
 
+declare global {
+  interface Window {
+    api: {
+      selectFolder: () => Promise<string | null>
+    }
+  }
+}
+
 function App(): JSX.Element {
   const [view, setView] = useState<ViewState>('LOGIN')
   const [username, setUsername] = useState('')
@@ -50,10 +58,11 @@ function App(): JSX.Element {
     // TODO: 실제 로직 연결
   }
 
-  const handleSelectFolder = () => {
-    // 나중에 여기서 실제 폴더 선택 창을 띄웁니다.
-    // 지금은 테스트를 위해 임시 경로를 넣습니다.
-    setProjectPath('C:\\Users\\User\\Documents\\MyProject')
+  const handleSelectFolder = async () => {
+    const path = await window.api.selectFolder()
+    if (path) {
+      setProjectPath(path)
+    }
   }
 
   // --- 렌더링 ---
