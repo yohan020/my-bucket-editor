@@ -2,7 +2,16 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import {promises as fs} from 'fs'
 
+// 프로젝트 타입 정의 (Renderer와 동일하게 유지)
+interface Project {
+  id: number
+  name: string
+  path: string
+  port: number
+  lastUsed: string
+}
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -52,7 +61,9 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  // 폴더 선택 코드
+  //------------- ipc 핸들러 -------------
+
+  // 폴더 선택 핸들러
   ipcMain.handle('dialog:openDirectory', async () => {
     const { canceled, filePaths} = await dialog.showOpenDialog({
       properties: ['openDirectory']
@@ -63,6 +74,36 @@ app.whenReady().then(() => {
       return filePaths[0]
     }
   })
+
+  // 저장할 파일 경로 : (사용자 데이터 폴더)/projects.json
+  const dbPath = join(app.getPath('userData'), 'projects.json')
+
+  // 프로젝트 목록 불러오기 (Read)
+  ipcMain.handle('project:list', async () => {
+    try {
+      const data = await fs.readFile(dbPath, 'utf-8')
+      return JSON.parse(data)
+    } catch (error) {
+      return []
+    }
+  })
+
+  // 프로젝트 저장하기 (Create)
+  ipcMain.handle('project:create', async (_, newProject: Project) => {
+    let projects: Project[] = []
+    try {
+      const data = await fs.readFile(dbPath, 'utf-8')
+      projects = JSON.parse(data)
+    } catch (error) {
+      // 파일이 없으면 새로 만듦
+    }
+
+    projects.push(newProject)
+    await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
+    return true
+  })
+
+  // ----------------------------------------
 
   createWindow()
 

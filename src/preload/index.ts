@@ -3,7 +3,9 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  selectFolder: (): Promise<string | null> => ipcRenderer.invoke('dialog:openDirectory')
+  selectFolder: (): Promise<string | null> => ipcRenderer.invoke('dialog:openDirectory'),
+  getProjects: (): Promise<any[]> => ipcRenderer.invoke('project:list'),
+  createProject: (project: any): Promise<boolean> => ipcRenderer.invoke('project:create', project),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
