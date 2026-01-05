@@ -15,6 +15,8 @@ declare global {
   interface Window {
     api: {
       selectFolder: () => Promise<string | null>
+      getProjects: () => Promise<Project[]>
+      createProject: (project: Project) => Promise<boolean>
     }
   }
 }
@@ -23,15 +25,13 @@ function App(): JSX.Element {
   const [view, setView] = useState<ViewState>('LOGIN')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [projectName, setProjectName] = useState('')
   const [projectPath, setProjectPath] = useState('')
 
   // 어떤 프로젝트의 메뉴가 열려있는지 관리 (null이면 닫힘)
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null)
 
-  const [projects, setProjects] = useState<Project[]>([
-    { id: 1, name: '나만의 쇼핑몰', path: 'C:\\Projects\\Shop', port: 3000, lastUsed: '2026-01-04' },
-    { id: 2, name: '알고리즘 스터디', path: 'D:\\Study\\Algo', port: 3001, lastUsed: '2026-01-05' }
-  ])
+  const [projects, setProjects] = useState<Project[]>([]) // 초기값을 빈 배열로
 
   // --- 핸들러 ---
 
@@ -42,14 +42,55 @@ function App(): JSX.Element {
     return () => window.removeEventListener('click', closeMenu)
   }, [])
 
-  const handleLogin = () => {
-    if (!username || !password) return alert('정보를 입력하세요.')
-    setView('DASHBOARD')
-  }
-
+  // 메뉴 토글 핸들러
   const toggleMenu = (e: React.MouseEvent, id: number) => {
     e.stopPropagation() // 부모 클릭 이벤트 전파 방지 (바로 닫히지 않게)
     setActiveMenuId(activeMenuId === id ? null : id)
+  }
+
+  // 앱 켜지면 저장된 프로젝트 목록 불러오기
+  useEffect(() => {
+    loadProjects()
+  }, [])
+
+  const loadProjects = async () => {
+    const savedProjects = await window.api.getProjects()
+    setProjects(savedProjects)
+  }
+
+  // 프로젝트 생성 핸들러
+  const handleCreateProject = async () => {
+    if (!projectPath || !projectName) {
+      alert("이름과 경로를 모두 입력해주세요.")
+      return
+    }
+
+    const newProject: Project = {
+      id: Date.now(),
+      name: projectName,
+      path: projectPath,
+      port: 3000 + projects.length, // 포트번호 자동 증가 (임시 로직)
+      lastUsed: new Date().toDateString()
+    }
+
+    // 저장 요청
+    await window.api.createProject(newProject)
+
+    // 목록 새로고침 및 이동
+    await loadProjects()
+
+    // 프로젝트 생성 페이지의 입력값 초기화
+    setProjectName('')
+    setProjectPath('')
+
+    alert('프로젝트가 생성되었습니다!')
+    setView('DASHBOARD')
+  }
+
+  // 로그인 핸들러
+  const handleLogin = () => {
+    if (!username || !password) return alert('정보를 입력하세요.')
+    setView('DASHBOARD')
   }
 
   // --- 메뉴 추천 기능들 ---
@@ -58,6 +99,7 @@ function App(): JSX.Element {
     // TODO: 실제 로직 연결
   }
 
+  // 폴더 선택 핸들러
   const handleSelectFolder = async () => {
     const path = await window.api.selectFolder()
     if (path) {
@@ -89,7 +131,7 @@ function App(): JSX.Element {
 
           <div className="input-group">
             <label>프로젝트 이름</label>
-            <input type="text" placeholder="예: 팀 프로젝트 A" />
+            <input type="text" placeholder="예: 팀 프로젝트 A" value={projectName} onChange={e => setProjectName(e.target.value)} />
           </div>
 
           <div className="input-group">
@@ -115,7 +157,7 @@ function App(): JSX.Element {
             <button className="secondary-btn half-btn" onClick={() => setView('DASHBOARD')}>
               취소
             </button>
-            <button className="primary-btn half-btn" onClick={() => { alert('생성 완료!'); setView('DASHBOARD'); }}>
+            <button className="primary-btn half-btn" onClick={handleCreateProject}>
               생성
             </button>
           </div>
