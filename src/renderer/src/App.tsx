@@ -5,6 +5,7 @@ import { useProjects } from './hooks/useProjects'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CreateProjectPage from './pages/CreateProjectPage'
+import EditorPage from './pages/EditorPage'
 
 // window.api 타입 선언 (기존 것 유지)
 declare global {
@@ -24,6 +25,7 @@ declare global {
 export default function App() {
   const [view, setView] = useState<ViewState>('LOGIN')
   const [username, setUsername] = useState('')
+  const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const { projects, createProject } = useProjects()
 
   const handleLogin = (name: string) => {
@@ -34,6 +36,12 @@ export default function App() {
   const handleCreate = async (project: Project) => {
     await createProject(project)
     setView('DASHBOARD')
+  }
+
+  //에디터 진입
+  const handleOpenEditor = (project: Project) => {
+    setCurrentProject(project)
+    setView('EDITOR')
   }
 
   if (view === 'LOGIN') {
@@ -50,10 +58,21 @@ export default function App() {
     )
   }
 
+  if (view === 'EDITOR' && currentProject) {
+    return (
+      <EditorPage
+        projectName={currentProject.name}
+        projectPath={currentProject.path}
+        onBack={() => setView('DASHBOARD')}
+      />
+    )
+  }
+
   return (
     <DashboardPage
       username={username}
       onCreateClick={() => setView('CREATE_PROJECT')}
+      onOpenEditor={handleOpenEditor}
     />
   )
 }

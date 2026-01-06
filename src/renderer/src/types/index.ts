@@ -7,4 +7,11 @@ export interface Project {
     lastUsed: string
 }
 
-export type ViewState = 'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT'
+export interface FileNode {
+    name: string,
+    path: string,
+    isDirectory: boolean,
+    children?: FileNode[]
+}
+
+export type ViewState = 'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT' | 'EDITOR'

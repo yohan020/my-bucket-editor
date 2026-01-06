@@ -1,3 +1,4 @@
+// [대시보드 페이지] 프로젝트 목록과 서버 관리를 담당하는 메인 화면
 import { useCallback } from 'react'
 import { Project } from '../types'
 import { useProjects } from '../hooks/useProjects'
@@ -8,9 +9,10 @@ import ProjectList from '../components/ProjectList'
 interface Props {
     username: string
     onCreateClick: () => void
+    onOpenEditor: (project: Project) => void
 }
 
-export default function DashboardPage({ username, onCreateClick }: Props) {
+export default function DashboardPage({ username, onCreateClick, onOpenEditor }: Props) {
     const { projects, activeProjectIds, toggleServer } = useProjects()
 
     const handleApprove = useCallback(async (port: number, email: string) => {
@@ -36,7 +38,12 @@ export default function DashboardPage({ username, onCreateClick }: Props) {
     return (
         <div className="dashboard-layout">
             <Header username={username} projectCount={projects.length} onCreateClick={onCreateClick} />
-            <ProjectList projects={projects} activeProjectIds={activeProjectIds} onToggleServer={handleToggleServer} />
+            <ProjectList
+                projects={projects}
+                activeProjectIds={activeProjectIds}
+                onToggleServer={handleToggleServer}
+                onOpenEditor={onOpenEditor}
+            />
         </div>
     )
 }

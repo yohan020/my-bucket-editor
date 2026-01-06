@@ -7,9 +7,10 @@ interface Props {
     project: Project
     isActive: boolean
     onToggleServer: () => void
+    onOpenEditor: () => void  // 추가!
 }
 
-export default function ProjectItem({ project, isActive, onToggleServer }: Props) {
+export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor }: Props) {
     const [menuOpen, setMenuOpen] = useState(false)
 
     const handleMenuAction = (action: string) => {
@@ -19,7 +20,7 @@ export default function ProjectItem({ project, isActive, onToggleServer }: Props
 
     return (
         <div className="list-item">
-            <div className="item-info">
+            <div className="item-info" onClick={onOpenEditor} style={{ cursor: 'pointer' }}>
                 <div className="item-title">
                     <h3>{project.name}</h3>
                     <span className="status-badge">{isActive ? 'ONLINE' : 'OFFLINE'}</span>
