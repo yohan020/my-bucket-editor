@@ -211,6 +211,10 @@ input:focus {
   font-size: 1rem;
 }
 
+.run-server-btn.active {
+  background-color: #e74c3c;
+}
+
 .run-server-btn:hover {
   background-color: #1177bb;
 }

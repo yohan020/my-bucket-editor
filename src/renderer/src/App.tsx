@@ -17,6 +17,8 @@ declare global {
       selectFolder: () => Promise<string | null>
       getProjects: () => Promise<Project[]>
       createProject: (project: Project) => Promise<boolean>
+      startServer: (port: number, projectPath: string) => Promise<{ success: boolean, message: string }>
+      stopServer: (port: number) => Promise<boolean>
     }
   }
 }
@@ -32,6 +34,8 @@ function App(): JSX.Element {
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null)
 
   const [projects, setProjects] = useState<Project[]>([]) // 초기값을 빈 배열로
+
+  const [activeProjectIds, setActiveProjectIds] = useState<number[]>([])
 
   // --- 핸들러 ---
 
@@ -104,6 +108,29 @@ function App(): JSX.Element {
     const path = await window.api.selectFolder()
     if (path) {
       setProjectPath(path)
+    }
+  }
+
+  // 서버 실행 핸들러
+  const handleToggleServer = async (project: Project) => {
+    // 1. 이미 해당 서버가 켜져있다면 끔
+    if (activeProjectIds.includes(project.id)) {
+      const stopped = await window.api.stopServer(project.port)
+      if (stopped) {
+        setActiveProjectIds(prev => prev.filter(id => id !== project.id))
+        alert('서버를 종료했습니다.')
+      }
+      return
+    }
+
+    // 2. 서버 시작 요청
+    const result = await window.api.startServer(project.port, project.path)
+
+    if (result.success) {
+      setActiveProjectIds(prev => [...prev, project.id])
+      alert(`✅ 서버 가동 시작!\n\n웹 브라우저를 켜고 http://localhost:${project.port} 로 접속해보세요.`)
+    } else {
+      alert(`실패: ${result.message}`)
     }
   }
 
@@ -200,8 +227,8 @@ function App(): JSX.Element {
 
             {/* 오른쪽: 액션 영역 */}
             <div className="item-actions">
-              <button className="run-server-btn" onClick={() => alert('서버 시작!')}>
-                ▶ 서버 실행
+              <button className={`run-server-btn ${activeProjectIds.includes(project.id) ? 'active' : ''}`} onClick={() => handleToggleServer(project)}>
+                {activeProjectIds.includes(project.id) ? '⏹ 서버 중지' : '▶ 서버 실행'}
               </button>
 
               {/* 점 3개 메뉴 (Kebab Menu) */}

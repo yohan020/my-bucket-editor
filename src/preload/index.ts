@@ -6,6 +6,8 @@ const api = {
   selectFolder: (): Promise<string | null> => ipcRenderer.invoke('dialog:openDirectory'),
   getProjects: (): Promise<any[]> => ipcRenderer.invoke('project:list'),
   createProject: (project: any): Promise<boolean> => ipcRenderer.invoke('project:create', project),
+  startServer: (port: number, projectPath: string): Promise<any> => ipcRenderer.invoke('server:start', {port, projectPath}),
+  stopServer: (port: number): Promise<boolean> => ipcRenderer.invoke('server:stop', port),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

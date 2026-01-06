@@ -4,6 +4,20 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import {promises as fs} from 'fs'
 
+// 서버용 모듈
+import express from 'express'
+import http from 'http'
+import { Server } from 'socket.io'
+import cors from 'cors'
+
+// 전역 변수 선언 (서버 상태 관리용)
+// 우리가 켠 서버를 나중에 끄려면 변수에 담아둬야 함
+const servers = new Map<number, {
+  app: express.Express,
+  http: http.Server,
+  io: Server
+}>()
+
 // 프로젝트 타입 정의 (Renderer와 동일하게 유지)
 interface Project {
   id: number
@@ -101,6 +115,64 @@ app.whenReady().then(() => {
     projects.push(newProject)
     await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
     return true
+  })
+
+  // 서버 시작 핸들러
+  ipcMain.handle('server:start', async (_, {port, projectPath}) => {
+    // 이미 켜져 있다면 끄고 다시 시작
+    if (servers.has(port)) {
+      console.log('이미 실행 중인 서버가 있습니다. 재시작합니다')
+      servers.get(port)?.http.close()
+      servers.delete(port)
+    }
+
+    try {
+      const app = express()
+      app.use(cors()) // 보안 정책 허용
+      app.use(express.json())
+
+      // 1) 테스트용 기본 페이지 (게스트가 접속하면 이게 보임)
+      app.get('/', (req, res) => {
+        res.send(`
+          <h1>🚀 Bucket Editor Server Running!</h1>
+          <p>현재 접속한 프로젝트 경로: ${projectPath}</p>
+          <p>게스트 로그인 페이지가 곧 구현될 예정입니다.</p>`)
+      })
+
+      // 2) HTTP 서버 실행
+      const httpServer = http.createServer(app)
+
+      // 3) 소켓 서버 장착 (나중에 채팅/코딩용)
+      const io = new Server(httpServer, {
+        cors: { origin: '*' } // 모든 곳에서 접속 허용
+      })
+
+      // 4) 진짜로 포트 열기
+      httpServer.listen(port, () => {
+        console.log(`✅ 서버가 ${port}번 포트에서 시작되었습니다! 경로: ${projectPath}`)
+      })
+
+      // Map에 저장
+      servers.set(port, {app, http: httpServer, io})
+      
+      return { success: true, message: '서버 시작 성공'}
+    } catch (error) {
+      console.error('서버 시작 실패: ',error)
+      return { success: false, message: String(error)}
+    }
+  })
+
+  // 서버 종료 핸들러
+  ipcMain.handle('server:stop', async (_, port: number) => {
+    const server = servers.get(port)
+    if (server) {
+      server.http.close(() => {
+        console.log('⛔ 서버가 종료되었습니다.')
+      })
+      servers.delete(port)
+      return true
+    }
+    return false
   })
 
   // ----------------------------------------
