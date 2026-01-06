@@ -10,22 +10,32 @@ import http from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 
-// 전역 변수 선언 (서버 상태 관리용)
-// 우리가 켠 서버를 나중에 끄려면 변수에 담아둬야 함
-const servers = new Map<number, {
+// 프로젝트 타입 정의 (Renderer와 동일하게 유지)
+interface Project {
+  id: number,
+  name: string,
+  path: string,
+  port: number,
+  lastUsed: string
+}
+
+interface server {
   app: express.Express,
   http: http.Server,
   io: Server
-}>()
-
-// 프로젝트 타입 정의 (Renderer와 동일하게 유지)
-interface Project {
-  id: number
-  name: string
-  path: string
-  port: number
-  lastUsed: string
 }
+
+interface User {
+  email: string,
+  password: string,
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+// 전역 변수 선언 (서버 상태 관리용)
+// 우리가 켠 서버를 나중에 끄려면 변수에 담아둬야 함
+const servers = new Map<number, server>()
+const projectUsers = new Map<number, User[]>()
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -119,11 +129,16 @@ app.whenReady().then(() => {
 
   // 서버 시작 핸들러
   ipcMain.handle('server:start', async (_, {port, projectPath}) => {
-    // 이미 켜져 있다면 끄고 다시 시작
+    // 1. 이미 켜져 있다면 끄고 다시 시작
     if (servers.has(port)) {
       console.log('이미 실행 중인 서버가 있습니다. 재시작합니다')
       servers.get(port)?.http.close()
       servers.delete(port)
+    }
+
+    // 2. 해당 포트의 상요자 목록 초기화
+    if (!projectUsers.has(port)) {
+      projectUsers.set(port, [])
     }
 
     try {
@@ -131,12 +146,95 @@ app.whenReady().then(() => {
       app.use(cors()) // 보안 정책 허용
       app.use(express.json())
 
+      app.post('/api/login', (req, res) => {
+        const {email, password} = req.body
+        const users = projectUsers.get(port) || [];
+        const existingUser = users.find(u => u.email === email)
+
+        // A. 이미 등록된 유저인 경우
+        if (existingUser) {
+          if (existingUser.password !== password) {
+            return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 틀렸습니다'})
+          }
+
+          if (existingUser.status === 'pending') {
+            return res.status(202).json({ success: false, message: '⏳ 호스트의 승인을 기다리는 중입니다.'})
+          }
+
+          if (existingUser.status === 'rejected') {
+            return res.status(403).json({ success: false, message: '⛔ 접속이 거절되었습니다.'})
+          }
+
+          return res.status(200).json({ success: true, message: '✅ 접속이 승인되었습니다.'})
+        }
+
+        // B. 등록되지 않은 유저인 경우
+        const newUser: User = { email, password, status: 'pending'}
+        users.push(newUser)
+        projectUsers.set(port, users);
+
+        // 호스트에게 승인 요청 왔다고 알려줌
+        const windows = BrowserWindow.getAllWindows()
+        if (windows.length > 0) {
+          windows[0].webContents.send('guest-request', {port, email})
+        }
+
+        return res.status(201).json({success: false, message: '📨 승인 요청을 보냈습니다. 호스트가 수락하면 다시 로그인하세요.'})
+      })
+
       // 1) 테스트용 기본 페이지 (게스트가 접속하면 이게 보임)
       app.get('/', (req, res) => {
         res.send(`
-          <h1>🚀 Bucket Editor Server Running!</h1>
-          <p>현재 접속한 프로젝트 경로: ${projectPath}</p>
-          <p>게스트 로그인 페이지가 곧 구현될 예정입니다.</p>`)
+          <!DOCTYPE html>
+          <html lang="ko">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bucket Login</title>
+            <style>
+              /* 스타일은 그대로 유지하거나 더 예쁘게 꾸미세요 */
+              body { background-color: #1e1e1e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+              .box { background: #252526; padding: 40px; border-radius: 8px; width: 300px; text-align: center; }
+              input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
+              button { width: 100%; padding: 10px; background: #0e639c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+              button:hover { background: #1177bb; }
+            </style>
+          </head>
+          <body>
+            <div class="box">
+              <h2>🔒 프로젝트 접속</h2>
+              <p>아이디와 비밀번호를 입력하세요.<br>(처음이면 자동으로 승인 요청됩니다)</p>
+              <input type="text" id="email" placeholder="이메일 / 닉네임">
+              <input type="password" id="password" placeholder="비밀번호">
+              <button onclick="login()">접속 / 승인요청</button>
+            </div>
+            <script>
+              async function login() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                if(!email || !password) return alert('모두 입력해주세요.');
+
+                try {
+                  const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                  });
+                  const data = await res.json();
+                  
+                  if (data.success) {
+                    alert('🎉 환영합니다! 에디터로 이동합니다.');
+                    document.body.innerHTML = '<h1>🚧 에디터 로딩중...</h1>'; 
+                    // 추후 여기에 리다이렉트 로직 추가
+                  } else {
+                    alert(data.message); // "대기중입니다" 또는 "요청 보냈습니다" 메시지 출력
+                  }
+                } catch (e) { alert('서버 오류'); }
+              }
+            </script>
+          </body>
+          </html>
+        `)
       })
 
       // 2) HTTP 서버 실행
@@ -173,6 +271,19 @@ app.whenReady().then(() => {
       return true
     }
     return false
+  })
+
+  // 호스트가 승인/거절 버튼을 눌렀을 때 처리하는 핸들러
+  ipcMain.handle('user:approve', async (_, {port, email, allow}) => {
+    const users = projectUsers.get(port)
+    if (!users) return {success: false, message: '⛔ 서버가 없습니다.'}
+
+    const targetUser = users.find(u => u.email === email)
+    if (targetUser) {
+      targetUser.status = allow ? 'approved' : 'rejected'
+      return {success: true, message: '✅ 승인/거절 성공'}
+    }
+    return {success: false, message: '⛔ 유저가 없습니다.'}
   })
 
   // ----------------------------------------

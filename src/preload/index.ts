@@ -8,6 +8,12 @@ const api = {
   createProject: (project: any): Promise<boolean> => ipcRenderer.invoke('project:create', project),
   startServer: (port: number, projectPath: string): Promise<any> => ipcRenderer.invoke('server:start', {port, projectPath}),
   stopServer: (port: number): Promise<boolean> => ipcRenderer.invoke('server:stop', port),
+  approveUser: (port: number, email: string, allow: boolean): Promise<any> => ipcRenderer.invoke('user:approve', {port, email, allow}),
+  onGuestRequest: (callback: (data: { port: number, email: string }) => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: { port: number, email: string }) => callback(data)
+    ipcRenderer.on('guest-request', handler)
+    return () => ipcRenderer.removeListener('guest-request', handler)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -19,6 +19,8 @@ declare global {
       createProject: (project: Project) => Promise<boolean>
       startServer: (port: number, projectPath: string) => Promise<{ success: boolean, message: string }>
       stopServer: (port: number) => Promise<boolean>
+      approveUser: (port: number, email: string, allow: boolean) => Promise<{ success: boolean, message: string }>
+      onGuestRequest: (callback: (data: { port: number, email: string }) => void) => () => void
     }
   }
 }
@@ -38,6 +40,24 @@ function App(): JSX.Element {
   const [activeProjectIds, setActiveProjectIds] = useState<number[]>([])
 
   // --- 핸들러 ---
+
+  // 앱이 켜지면 '승인 요청 리스너' 등록
+  useEffect(() => {
+    const cleanup = window.api.onGuestRequest((data) => {
+      // 지금은 간단하게 브라우저 기본 confirm 창 이용 (나중에 교체)
+      const isApproved = confirm(
+        `🔔 접속 요청 알림!\n\n` +
+        `프로젝트 포트: ${data.port}\n` +
+        `요청자 ID: ${data.email}\n\n` +
+        `이 사용자의 접속을 허용하시겠습니까?`
+      )
+
+      // 승인 또는 거절 처리 요청
+      handleApprove(data.port, data.email, isApproved);
+    })
+
+    return cleanup  // 컴포넌트 언마운트 시 리스너 제거
+  }, [])
 
   // 다른 곳 클릭 시 메뉴 닫기
   useEffect(() => {
@@ -131,6 +151,15 @@ function App(): JSX.Element {
       alert(`✅ 서버 가동 시작!\n\n웹 브라우저를 켜고 http://localhost:${project.port} 로 접속해보세요.`)
     } else {
       alert(`실패: ${result.message}`)
+    }
+  }
+
+  const handleApprove = async (port: number, email: string, allow: boolean) => {
+    await window.api.approveUser(port, email, allow)
+    if (allow) {
+      alert(`${email} 님을 승인했습니다! 이제 로그인할 수 있습니다.`)
+    } else {
+      alert(`${email} 님의 접속을 거절했습니다.`)
     }
   }
 
