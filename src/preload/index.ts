@@ -1,3 +1,4 @@
+// [Preload Bridge] Renderer와 Main Process 간 IPC 통신 API를 노출하는 브릿지
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
