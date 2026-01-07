@@ -1,127 +1,29 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import {promises as fs} from 'fs'
+// [Main Process 진입점] Electron 앱 초기화, IPC 등록, 윈도우 생성을 담당
+import { app, BrowserWindow, ipcMain } from 'electron'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { createWindow } from './window'
+import { registerAllHandlers } from './ipc'
 
-// 프로젝트 타입 정의 (Renderer와 동일하게 유지)
-interface Project {
-  id: number
-  name: string
-  path: string
-  port: number
-  lastUsed: string
-}
-function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
-}
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  //------------- ipc 핸들러 -------------
+  // 모든 IPC 핸들러 등록
+  registerAllHandlers()
 
-  // 폴더 선택 핸들러
-  ipcMain.handle('dialog:openDirectory', async () => {
-    const { canceled, filePaths} = await dialog.showOpenDialog({
-      properties: ['openDirectory']
-    })
-    if (canceled) {
-      return null
-    } else {
-      return filePaths[0]
-    }
-  })
-
-  // 저장할 파일 경로 : (사용자 데이터 폴더)/projects.json
-  const dbPath = join(app.getPath('userData'), 'projects.json')
-
-  // 프로젝트 목록 불러오기 (Read)
-  ipcMain.handle('project:list', async () => {
-    try {
-      const data = await fs.readFile(dbPath, 'utf-8')
-      return JSON.parse(data)
-    } catch (error) {
-      return []
-    }
-  })
-
-  // 프로젝트 저장하기 (Create)
-  ipcMain.handle('project:create', async (_, newProject: Project) => {
-    let projects: Project[] = []
-    try {
-      const data = await fs.readFile(dbPath, 'utf-8')
-      projects = JSON.parse(data)
-    } catch (error) {
-      // 파일이 없으면 새로 만듦
-    }
-
-    projects.push(newProject)
-    await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
-    return true
-  })
-
-  // ----------------------------------------
-
+  // 윈도우 생성
   createWindow()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
