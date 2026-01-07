@@ -7,6 +7,8 @@ import cors from 'cors'
 import { servers, projectUsers } from '../server'
 import { createAuthRouter } from '../server/routes/auth.route'
 import { createGuestRouter } from '../server/routes/guest.page'
+import { createEditorRouter } from '../server/routes/editor.page'
+import { setupSocketHandlers } from '../server/socket'
 
 // 서버 시작 핸들러
 export function registerServerHandlers(): void {
@@ -32,6 +34,7 @@ export function registerServerHandlers(): void {
       // 라우트 등록
       app.use(createAuthRouter(port))
       app.use(createGuestRouter())
+      app.use(createEditorRouter())
 
       // HTTP 서버 실행
       const httpServer = http.createServer(app)
@@ -40,6 +43,9 @@ export function registerServerHandlers(): void {
       const io = new Server(httpServer, {
         cors: { origin: '*' } // 모든 곳에서 접속 허용
       })
+
+      // Socket.io 이벤트 핸들러 등록
+      setupSocketHandlers(io, projectPath)
 
       // 4) 진짜로 포트 열기
       httpServer.listen(port, () => {

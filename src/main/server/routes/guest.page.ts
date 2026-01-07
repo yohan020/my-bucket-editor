@@ -5,7 +5,7 @@ import { Router } from 'express'
 export function createGuestRouter(): Router {
     const router = Router()
 
-    router.get('/', (_req, res) => {
+    router.get('/', (req, res) => {
         res.send(`
           <!DOCTYPE html>
           <html lang="ko">
@@ -45,9 +45,11 @@ export function createGuestRouter(): Router {
                   const data = await res.json();
                   
                   if (data.success) {
+                    // 토큰을 쿠키에 저장
+                    document.cookie = 'token=' + data.token + '; path=/';
                     alert('🎉 환영합니다! 에디터로 이동합니다.');
                     document.body.innerHTML = '<h1>🚧 에디터 로딩중...</h1>'; 
-                    // 추후 여기에 리다이렉트 로직 추가
+                    window.location.href = '/editor';
                   } else {
                     alert(data.message); // "대기중입니다" 또는 "요청 보냈습니다" 메시지 출력
                   }

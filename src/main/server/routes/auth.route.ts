@@ -1,9 +1,9 @@
 // [인증 라우트] 게스트 로그인 API (/api/login) - 유저 인증 및 승인 요청 처리
-
 import { Router } from 'express'
 import { BrowserWindow } from 'electron'
 import { projectUsers } from '../index'
 import { User } from '../../types'
+import { generateToken } from '../utils/jwt'
 
 export function createAuthRouter(port: number): Router {
     const router = Router()
@@ -26,8 +26,12 @@ export function createAuthRouter(port: number): Router {
           if (existingUser.status === 'rejected') {
             return res.status(403).json({ success: false, message: '⛔ 접속이 거절되었습니다.'})
           }
-
-          return res.status(200).json({ success: true, message: '✅ 접속이 승인되었습니다.'})
+          if (existingUser.status === 'approved') {
+            const token = generateToken({ email, port })
+            res.json({ success: true, token })
+            return
+          }
+          
         }
 
         // B. 등록되지 않은 유저인 경우
