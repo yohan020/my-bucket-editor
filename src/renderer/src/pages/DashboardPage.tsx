@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function DashboardPage({ username, onCreateClick, onOpenEditor }: Props) {
-    const { projects, activeProjectIds, toggleServer } = useProjects()
+    const { projects, activeProjectIds, toggleServer, deleteProject } = useProjects()
 
     const handleApprove = useCallback(async (port: number, email: string) => {
         const isApproved = confirm(
@@ -35,6 +35,18 @@ export default function DashboardPage({ username, onCreateClick, onOpenEditor }:
         if (result?.error) alert(`실패: ${result.error}`)
     }
 
+    const handleDeleteProject = async (project: Project) => {
+        const confirmed = confirm(`정말 '${project.name}' 프로젝트를 삭제하시겠습니까?`)
+        if (confirmed) {
+            const result = await deleteProject(project.id)
+            if (result.success) {
+                alert('프로젝트가 삭제되었습니다.')
+            } else {
+                alert('삭제 실패: ' + result.error)
+            }
+        }
+    }
+
     return (
         <div className="dashboard-layout">
             <Header username={username} projectCount={projects.length} onCreateClick={onCreateClick} />
@@ -43,6 +55,7 @@ export default function DashboardPage({ username, onCreateClick, onOpenEditor }:
                 activeProjectIds={activeProjectIds}
                 onToggleServer={handleToggleServer}
                 onOpenEditor={onOpenEditor}
+                onDeleteProject={handleDeleteProject}
             />
         </div>
     )

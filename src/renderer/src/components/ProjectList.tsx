@@ -7,9 +7,10 @@ interface Props {
     activeProjectIds: number[]
     onToggleServer: (project: Project) => void
     onOpenEditor: (project: Project) => void
+    onDeleteProject: (project: Project) => void
 }
 
-export default function ProjectList({ projects, activeProjectIds, onToggleServer, onOpenEditor }: Props) {
+export default function ProjectList({ projects, activeProjectIds, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
     return (
         <div className="list-container">
             {projects.map(project => (
@@ -19,6 +20,7 @@ export default function ProjectList({ projects, activeProjectIds, onToggleServer
                     isActive={activeProjectIds.includes(project.id)}
                     onToggleServer={() => onToggleServer(project)}
                     onOpenEditor={() => onOpenEditor(project)}
+                    onDeleteProject={() => onDeleteProject(project)}
                 />
             ))}
         </div>

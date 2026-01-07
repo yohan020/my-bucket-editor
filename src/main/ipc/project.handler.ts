@@ -34,4 +34,18 @@ export function registerProjectHandlers(): void {
         await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
         return true
     })
+
+    // 프로젝트 삭제 (Delete)
+    ipcMain.handle('project:delete', async (_, projectId: number) => {
+        try {
+            const data = await fs.readFile(dbPath, 'utf-8')
+            let projects: Project[] = JSON.parse(data)
+            projects = projects.filter(p => p.id !== projectId)
+            await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
+            return { success: true }
+        } catch (error) {
+            console.error('프로젝트 삭제 실패:', error)
+            return { success: false, error: String(error) }
+        }
+    })
 }

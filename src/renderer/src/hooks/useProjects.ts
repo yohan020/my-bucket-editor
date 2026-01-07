@@ -12,6 +12,11 @@ export function useProjects() {
         setProjects(saved)
     }
 
+    /**
+     * 1. [] = 최초 렌더링(마운트) 될 때 한번만 실행
+     * 2. [상태값1, 상태값 2..] = 선언한 상태값들이 업데이트 될 때만 실행
+     * 3. 생략 = 리렌더링시마다 반드시 실행
+     */
     useEffect(() => {
         loadProjects()
     }, [])
@@ -39,10 +44,20 @@ export function useProjects() {
         }
     }
 
+    const deleteProject = async (projectId: number) => {
+        const result = await window.api.deleteProject(projectId)
+        if (result.success) {
+            await loadProjects()
+            return { success: true }
+        }
+        return { error: result.error }
+    }
+
     return {
         projects,
         activeProjectIds,
         createProject,
-        toggleServer
+        toggleServer,
+        deleteProject
     }
 }

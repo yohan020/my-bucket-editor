@@ -7,14 +7,19 @@ interface Props {
     project: Project
     isActive: boolean
     onToggleServer: () => void
-    onOpenEditor: () => void  // 추가!
+    onOpenEditor: () => void
+    onDeleteProject: () => void
 }
 
-export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor }: Props) {
+export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
     const [menuOpen, setMenuOpen] = useState(false)
 
     const handleMenuAction = (action: string) => {
-        alert(`'${project.name}' 프로젝트 - [${action}] 기능을 실행합니다.`)
+        if (action === '삭제') {
+            onDeleteProject()
+        } else {
+            alert(`'${project.name}' 프로젝트 - [${action}] 기능을 실행합니다.`)
+        }
         setMenuOpen(false)
     }
 

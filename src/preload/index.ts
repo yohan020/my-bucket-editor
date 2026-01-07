@@ -14,7 +14,15 @@ const api = {
     const handler = (_: Electron.IpcRendererEvent, data: { port: number, email: string }) => callback(data)
     ipcRenderer.on('guest-request', handler)
     return () => ipcRenderer.removeListener('guest-request', handler)
-  }
+  },
+
+  // === 파일 관련 API ====
+  getFileTree: (dirPath: string): Promise<any> => ipcRenderer.invoke('file:tree', dirPath),
+  readFile: (filePath: string): Promise<any> => ipcRenderer.invoke('file:read', filePath),
+  writeFile: (filePath: string, content: string): Promise<any> => ipcRenderer.invoke('file:write', {filePath, content}),
+
+  // === 프로젝트 삭제 API ===
+  deleteProject: (projectId: number): Promise<any> => ipcRenderer.invoke('project:delete', projectId)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

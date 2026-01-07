@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FileNode } from '../types'
 import FileTree from '../components/FileTree'
 import CodeEditor from '../components/CodeEditor'
@@ -14,6 +14,20 @@ export default function EditorPage({ projectName, projectPath, onBack }: Props) 
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [fileContent, setFileContent] = useState('')
     const [language, setLanguage] = useState('plaintext')
+
+    // 컴포넌트 마운트 시 파일 트리 로드
+    useEffect(() => {
+        loadFileTree()
+    }, [projectPath])
+
+    const loadFileTree = async () => {
+        const result = await window.api.getFileTree(projectPath)
+        if (result.success) {
+            setFileTree(result.tree)
+        } else {
+            alert('파일 트리 로드 실패: ' + result.error)
+        }
+    }
 
     // 파일 확장자로 언어 감지
     const detectLanguage = (filePath: string): string => {
@@ -34,10 +48,14 @@ export default function EditorPage({ projectName, projectPath, onBack }: Props) 
 
     // 파일 클릭 핸들러 (TODO: 실제 파일 읽기 구현)
     const handleFileClick = async (filePath: string) => {
-        setCurrentFile(filePath)
-        setLanguage(detectLanguage(filePath))
-        //TODO : window.api.readFile(filePath) 호출
-        setFileContent(`// 파일 내용 로드 예정: ${filePath}`)
+        const result = await window.api.readFile(filePath)
+        if (result.success) {
+            setCurrentFile(filePath)
+            setLanguage(detectLanguage(filePath))
+            setFileContent(result.content || '')
+        } else {
+            alert('파일 읽기 실패: ' + result.error)
+        }
     }
 
     const handleContentChange = (value: string | undefined) => {
@@ -45,6 +63,24 @@ export default function EditorPage({ projectName, projectPath, onBack }: Props) 
             setFileContent(value)
         }
     }
+
+    useEffect(() => {
+        const handleSave = async (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault()
+                if (currentFile) {
+                    const result = await window.api.writeFile(currentFile, fileContent)
+                    if (result.success) {
+                        console.log('파일 저장 완료!')
+                    } else {
+                        alert('파일 저장 실패: ' + result.error)
+                    }
+                }
+            }
+        }
+        window.addEventListener('keydown', handleSave)
+        return () => window.removeEventListener('keydown', handleSave)
+    }, [currentFile, fileContent])
 
     return (
         <div className="editor-layout">
