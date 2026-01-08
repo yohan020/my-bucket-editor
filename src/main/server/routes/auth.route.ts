@@ -4,12 +4,20 @@ import { BrowserWindow } from 'electron'
 import { projectUsers } from '../index'
 import { User } from '../../types'
 import { generateToken } from '../utils/jwt'
+import { isApprovedUser } from '../../utils/userStore'
 
 export function createAuthRouter(port: number): Router {
     const router = Router()
 
-    router.post('/api/login', (req, res) => {
+    router.post('/api/login', async (req, res) => {
         const {email, password} = req.body
+
+        // 영구 저장된 유저인지 확인 (해당 프로젝트/포트)
+        if (await isApprovedUser(port, email, password)) {
+            const token = generateToken({ email, port })
+            return res.json({ success: true, token })
+        }
+
         const users = projectUsers.get(port) || [];
         const existingUser = users.find(u => u.email === email)
 
@@ -26,12 +34,6 @@ export function createAuthRouter(port: number): Router {
           if (existingUser.status === 'rejected') {
             return res.status(403).json({ success: false, message: '⛔ 접속이 거절되었습니다.'})
           }
-          if (existingUser.status === 'approved') {
-            const token = generateToken({ email, port })
-            res.json({ success: true, token })
-            return
-          }
-          
         }
 
         // B. 등록되지 않은 유저인 경우

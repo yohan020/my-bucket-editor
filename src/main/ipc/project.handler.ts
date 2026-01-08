@@ -4,6 +4,7 @@ import { ipcMain, app } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { Project } from '../types'
+import { deleteApprovedUserFile } from '../utils/userStore'
 
 export function registerProjectHandlers(): void {
     // 저장할 파일 경로 : (사용자 데이터 폴더)/projects.json
@@ -40,8 +41,18 @@ export function registerProjectHandlers(): void {
         try {
             const data = await fs.readFile(dbPath, 'utf-8')
             let projects: Project[] = JSON.parse(data)
+
+            // 삭제할 프로젝트의 port찾기
+            const projectToDelete = projects.find(p => p.id === projectId)
+            
             projects = projects.filter(p => p.id !== projectId)
             await fs.writeFile(dbPath, JSON.stringify(projects, null, 2))
+
+            // 해당 프로젝트의 유저 목록도 삭제
+            if (projectToDelete) {
+                await deleteApprovedUserFile(projectToDelete.port)
+            }
+
             return { success: true }
         } catch (error) {
             console.error('프로젝트 삭제 실패:', error)

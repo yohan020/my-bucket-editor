@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Project } from '../types'
 import KebabMenu from './KebabMenu'
+import UserManageModal from './UserManageModal'
 
 interface Props {
     project: Project
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
     const [menuOpen, setMenuOpen] = useState(false)
+    const [userModalOpen, setUserModalOpen] = useState(false)
 
     const handleMenuAction = (action: string) => {
         if (action === '삭제') {
@@ -35,6 +37,12 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             </div>
 
             <div className="item-actions">
+                <button
+                    className="user-manage-btn"
+                    onClick={() => setUserModalOpen(true)}
+                >
+                    👥 유저 관리
+                </button>
                 <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
                     {isActive ? '⏹ 서버 중지' : '▶ 서버 실행'}
                 </button>
@@ -44,6 +52,13 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                     <KebabMenu isOpen={menuOpen} onAction={handleMenuAction} />
                 </div>
             </div>
+
+            {/* 유저 관리 모달 */}
+            <UserManageModal
+                port={project.port}
+                isOpen={userModalOpen}
+                onClose={() => setUserModalOpen(false)}
+            />
         </div>
     )
 }

@@ -22,7 +22,11 @@ const api = {
   writeFile: (filePath: string, content: string): Promise<any> => ipcRenderer.invoke('file:write', {filePath, content}),
 
   // === 프로젝트 삭제 API ===
-  deleteProject: (projectId: number): Promise<any> => ipcRenderer.invoke('project:delete', projectId)
+  deleteProject: (projectId: number): Promise<any> => ipcRenderer.invoke('project:delete', projectId),
+
+  // === 유저 목록 관련 API ===
+  getApprovedUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:list', port),
+  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
