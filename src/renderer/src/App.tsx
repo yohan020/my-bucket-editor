@@ -22,6 +22,8 @@ declare global {
       readFile: (filePath: string) => Promise<any>
       writeFile: (filePath: string, content: string) => Promise<any>
       deleteProject: (projectId: number) => Promise<any>
+      getApprovedUsers: (port: number) => Promise<any[]>
+      removeApprovedUser: (port: number, email: string) => Promise<any>
     }
   }
 }
