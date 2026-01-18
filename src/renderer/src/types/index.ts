@@ -14,4 +14,4 @@ export interface FileNode {
     children?: FileNode[]
 }
 
-export type ViewState = 'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT' | 'EDITOR'
+export type ViewState = 'MODE_SELECT' |'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT' | 'EDITOR' | 'GUEST_CONNECT' | 'GUEST_EDITOR'

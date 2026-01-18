@@ -6,6 +6,9 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CreateProjectPage from './pages/CreateProjectPage'
 import EditorPage from './pages/EditorPage'
+import ModeSelectPage from './pages/ModeSelectPage'
+import GuestConnectPage from './pages/GuestConnectPage'
+import GuestEditorPage from './pages/GuestEditorPage'
 
 // window.api 타입 선언 (기존 것 유지)
 declare global {
@@ -29,9 +32,10 @@ declare global {
 }
 
 export default function App() {
-  const [view, setView] = useState<ViewState>('LOGIN')
+  const [view, setView] = useState<ViewState>('MODE_SELECT')
   const [username, setUsername] = useState('')
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
+  const [guestAddress, setGuestAddress] = useState('')
 
   // useProjects 훅이 반환하는 '종합 선물 세트(객체)' 중에서
   // 당장 필요한 '프로젝트 목록(projects)'과 '생성 기능(createProject)'만
@@ -58,6 +62,36 @@ export default function App() {
   const handleOpenEditor = (project: Project) => {
     setCurrentProject(project)
     setView('EDITOR')
+  }
+
+  if (view === 'MODE_SELECT') {
+    return (
+      <ModeSelectPage
+        onSelectHost={() => setView('LOGIN')}
+        onSelectGuest={() => setView('GUEST_CONNECT')}
+      />
+    )
+  }
+
+  if (view === "GUEST_CONNECT") {
+    return (
+      <GuestConnectPage
+        onConnect={(addr) => {
+          setGuestAddress(addr)
+          setView('GUEST_EDITOR')
+        }}
+        onBack={() => setView('MODE_SELECT')}
+      />
+    )
+  }
+
+  if (view === "GUEST_EDITOR") {
+    return (
+      <GuestEditorPage
+        address={guestAddress}
+        onDisconnect={() => setView('MODE_SELECT')}
+      />
+    )
   }
 
   if (view === 'LOGIN') {
