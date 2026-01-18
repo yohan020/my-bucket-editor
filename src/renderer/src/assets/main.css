@@ -578,3 +578,159 @@ input:focus {
 .user-manage-btn:hover {
   background: #3d5a6a;
 }
+
+/* --- 모드 선택 페이지 --- */
+.mode-select-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 30px;
+}
+
+.mode-select-container h1 {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.mode-select-container p {
+  color: #888;
+  margin: 0;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 30px;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 50px;
+  background: #252526;
+  border: 2px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn span {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.mode-btn.host:hover {
+  border-color: #0e639c;
+  background: #1e3a4c;
+}
+
+.mode-btn.guest:hover {
+  border-color: #2da44e;
+  background: #1e3a2c;
+}
+
+/* --- Guest 연결 페이지 --- */
+.guest-connect-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 20px;
+}
+
+.guest-connect-container h1 {
+  margin: 0;
+}
+
+.guest-connect-container p {
+  color: #888;
+  margin: 0;
+}
+
+.guest-connect-container input {
+  width: 300px;
+  padding: 15px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.guest-connect-container .buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.connect-btn {
+  background: #2da44e;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.connect-btn:hover {
+  background: #2c974b;
+}
+
+.back-btn {
+  background: #3c3c3c;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+}
+
+/* --- Guest 에디터 (Host와 동일한 스타일) --- */
+.guest-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.guest-editor .editor-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 20px;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+}
+
+.guest-editor .editor-header .current-file {
+  color: #888;
+  font-size: 0.85rem;
+  font-family: monospace;
+  flex: 1;
+}
+
+.guest-editor .editor-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.guest-editor .file-tree {
+  width: 260px;
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+  overflow-y: auto;
+}
+
+.guest-editor .editor-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 로딩 화면 */
+.guest-editor.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  color: #888;
+}

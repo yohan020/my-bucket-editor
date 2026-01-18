@@ -1,26 +1,22 @@
-// [에디터 페이지] Guest용 Monaco Editor SSR 페이지
+// [에디터 페이지] Guest용 Monaco Editor SSR 페이지 - 실시간 동시 편집
 import { Router } from 'express'
 import { verifyToken } from '../utils/jwt'
 
 export function createEditorRouter(): Router {
     const router = Router()
 
-    // req = 브라우저가 뭘 보냈는지 읽는데 사용
-    // res = 브라우저에 뭘 보낼지 결정하는데 사용
     router.get('/editor', (req, res) => {
-        // 쿠키에서 토큰 추출
         const cookies = req.headers.cookie || ''
         const tokenMatch = cookies.match(/token=([^;]+)/)
         const token = tokenMatch ? tokenMatch[1] : null
         
-        // 토큰 검증
         if (!token || !verifyToken(token)) {
             res.redirect('/')
             return
         }
         res.send(`
 <!DOCTYPE html>
-<html lang="ko">
+<. lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,13 +35,13 @@ export function createEditorRouter(): Router {
         .resize-handle:hover { background: #0e639c; }
         .editor-container { flex: 1; overflow: hidden; }
         #editor { width: 100%; height: 100%; }
-        .placeholder { display: flex; justify-content: center; align-items: center; height: 100%; color: #888; }
     </style>
 </head>
 <body>
     <header class="header">
         <h2>📝 Bucket Editor (Guest)</h2>
         <span id="current-file" style="color: #888; font-size: 0.9rem;"></span>
+        <span id="sync-status" style="color: #4ec9b0; font-size: 0.8rem; margin-left: auto;">🟢 실시간 동기화</span>
     </header>
     <div class="main">
         <aside class="sidebar" id="sidebar">
@@ -58,18 +54,15 @@ export function createEditorRouter(): Router {
         </main>
     </div>
 
-    <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
-    
-    <!-- Monaco Editor CDN -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     
     <script>
         const socket = io();
         let editor = null;
         let currentFilePath = null;
+        let isRemoteChange = false;  // 원격 변경인지 로컬 변경인지 구분
 
-        // Monaco 에디터 초기화
         require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
         require(['vs/editor/editor.main'], function () {
             editor = monaco.editor.create(document.getElementById('editor'), {
@@ -82,18 +75,30 @@ export function createEditorRouter(): Router {
                 wordWrap: 'on'
             });
 
+            // 로컬에서 내용 변경 시 서버로 전송
+            editor.onDidChangeModelContent(() => {
+                if (isRemoteChange || !currentFilePath) return;
+                
+                // 디바운싱 - 50ms 내에 여러 번 타이핑해도 한 번만 전송
+                clearTimeout(window.changeTimeout);
+                window.changeTimeout = setTimeout(() => {
+                    socket.emit('file:change', { 
+                        filePath: currentFilePath, 
+                        content: editor.getValue() 
+                    });
+                }, 50);
+            });
+
             // Ctrl+S로 저장
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
                 if (currentFilePath) {
-                    socket.emit('file:write', { filePath: currentFilePath, content: editor.getValue() });
+                    socket.emit('file:write', { filePath: currentFilePath });
                 }
             });
 
-            // 파일 트리 요청
             socket.emit('file:tree');
         });
 
-        // 파일 트리 렌더링
         function renderTree(nodes, container, depth = 0) {
             nodes.forEach(node => {
                 const div = document.createElement('div');
@@ -113,20 +118,24 @@ export function createEditorRouter(): Router {
                         container.appendChild(childContainer);
                     }
                 } else {
-                    div.onclick = () => socket.emit('file:read', node.path);
+                    div.onclick = () => {
+                        // 이전 파일 room에서 나가기
+                        if (currentFilePath) {
+                            socket.emit('file:leave', currentFilePath);
+                        }
+                        socket.emit('file:read', node.path);
+                    };
                     container.appendChild(div);
                 }
             });
         }
 
-        // 파일 확장자로 언어 감지
         function detectLanguage(filePath) {
             const ext = filePath.split('.').pop().toLowerCase();
             const map = { ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript', json: 'json', html: 'html', css: 'css', md: 'markdown', py: 'python' };
             return map[ext] || 'plaintext';
         }
 
-        // Socket 이벤트 핸들러
         socket.on('file:tree:response', (data) => {
             if (data.success) {
                 const container = document.getElementById('file-tree');
@@ -140,27 +149,48 @@ export function createEditorRouter(): Router {
                 currentFilePath = data.filePath;
                 document.getElementById('current-file').textContent = data.filePath;
                 monaco.editor.setModelLanguage(editor.getModel(), detectLanguage(data.filePath));
+                
+                isRemoteChange = true;
+                editor.setValue(data.content || '');
+                isRemoteChange = false;
+            }
+        });
+
+        // 다른 클라이언트의 실시간 변경 수신
+        socket.on('file:change', (data) => {
+            if (data.filePath === currentFilePath && editor) {
+                // 현재 커서 위치 저장
+                const position = editor.getPosition();
+                const scrollTop = editor.getScrollTop();
+                
+                isRemoteChange = true;
                 editor.setValue(data.content);
+                isRemoteChange = false;
+                
+                // 커서 위치 복원
+                if (position) editor.setPosition(position);
+                editor.setScrollTop(scrollTop);
             }
         });
 
         socket.on('file:write:response', (data) => {
-            if (data.success) console.log('✅ 파일 저장 완료');
-            else alert('저장 실패: ' + data.error);
-        });
-
-        socket.on('file:updated', (data) => {
-            if (currentFilePath === data.filePath && editor) {
-                editor.setValue(data.content);
+            if (data.success) {
+                console.log('✅ 파일 저장 완료');
+                document.getElementById('sync-status').textContent = '💾 저장됨!';
+                setTimeout(() => {
+                    document.getElementById('sync-status').textContent = '🟢 실시간 동기화';
+                }, 2000);
+            } else {
+                alert('저장 실패: ' + data.error);
             }
         });
 
-        // 사이드바 리사이즈 기능
+        // 사이드바 리사이즈
         const sidebar = document.getElementById('sidebar');
         const resizeHandle = document.getElementById('resize-handle');
         let isResizing = false;
 
-        resizeHandle.addEventListener('mousedown', (e) => {
+        resizeHandle.addEventListener('mousedown', () => {
             isResizing = true;
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
@@ -168,9 +198,8 @@ export function createEditorRouter(): Router {
 
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
-            const newWidth = e.clientX;
-            if (newWidth >= 200 && newWidth <= 500) {
-                sidebar.style.width = newWidth + 'px';
+            if (e.clientX >= 200 && e.clientX <= 500) {
+                sidebar.style.width = e.clientX + 'px';
             }
         });
 
