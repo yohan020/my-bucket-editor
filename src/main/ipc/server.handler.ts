@@ -47,8 +47,8 @@ export function registerServerHandlers(): void {
       // Socket.io 이벤트 핸들러 등록
       setupSocketHandlers(io, projectPath)
 
-      // 4) 진짜로 포트 열기
-      httpServer.listen(port, () => {
+      // 4) 진짜로 포트 열기 (0.0.0.0 = 모든 네트워크 인터페이스에서 접근 가능)
+      httpServer.listen(port, '0.0.0.0', () => {
         console.log(`✅ 서버가 ${port}번 포트에서 시작되었습니다! 경로: ${projectPath}`)
       })
 
