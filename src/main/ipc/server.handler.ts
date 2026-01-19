@@ -41,14 +41,19 @@ export function registerServerHandlers(): void {
 
       // 소켓 서버 장착 (나중에 채팅/코딩용)
       const io = new Server(httpServer, {
-        cors: { origin: '*' } // 모든 곳에서 접속 허용
+        cors: { 
+          origin: '*',  // 모든 곳에서 접속 허용
+          methods: ['GET', 'POST'],
+          credentials: true
+        },
+        transports: ['websocket', 'polling']  // WebSocket 우선, polling 대비
       })
 
       // Socket.io 이벤트 핸들러 등록
       setupSocketHandlers(io, projectPath)
 
-      // 4) 진짜로 포트 열기
-      httpServer.listen(port, () => {
+      // 4) 진짜로 포트 열기 (0.0.0.0 = 모든 네트워크 인터페이스에서 접근 가능)
+      httpServer.listen(port, '0.0.0.0', () => {
         console.log(`✅ 서버가 ${port}번 포트에서 시작되었습니다! 경로: ${projectPath}`)
       })
 
