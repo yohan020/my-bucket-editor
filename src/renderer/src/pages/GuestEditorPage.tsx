@@ -31,13 +31,19 @@ export default function GuestEditorPage({ address, onDisconnect }: Props) {
 
     // Socket.io 연결
     useEffect(() => {
+        console.log('🔄 Socket.io 연결 시도:', `http://${address}`)
         const socket = io(`http://${address}`)
         socketRef.current = socket
 
         socket.on('connect', () => {
+            console.log('✅ Socket.io 연결 성공!')
             setIsConnected(true)
             setIsLoading(false)
             socket.emit('file:tree')
+        })
+
+        socket.on('connect_error', (error) => {
+            console.error('❌ Socket.io 연결 에러:', error.message)
         })
 
         socket.on('disconnect', () => setIsConnected(false))
