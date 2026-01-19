@@ -109,6 +109,15 @@ export default function GuestEditorPage({ address, onDisconnect }: Props) {
         return (
             <div className="guest-editor loading-screen">
                 <div>🔄 연결 중... ({address})</div>
+                <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#888' }}>
+                    연결 상태: {isConnected ? '🟢 연결됨' : '🔴 연결 대기 중'}
+                </div>
+                <button
+                    style={{ marginTop: '20px', padding: '10px 20px' }}
+                    onClick={onDisconnect}
+                >
+                    ← 돌아가기
+                </button>
             </div>
         )
     }
