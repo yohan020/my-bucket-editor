@@ -66,10 +66,19 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                         onChange={(e) => setAddress(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
                     />
-                    <button onClick={handleConnect} disabled={status === 'loading'}>
-                        {status === 'loading' ? '⏳ 연결 중...' : '🔗 연결 테스트'}
-                    </button>
-                    {message && <p style={{ color: '#ff6b6b' }}>{message}</p>}
+                    <div className="buttons">
+                        <button
+                            className="connect-btn"
+                            onClick={handleConnect}
+                            disabled={status === 'loading'}
+                        >
+                            {status === 'loading' ? '⏳ 연결 중...' : '🔗 연결'}
+                        </button>
+                        <button className="back-btn" onClick={onBack}>
+                            ← 뒤로
+                        </button>
+                    </div>
+                    {message && <p className="error-message">{message}</p>}
                 </>
             ) : (
                 <>
@@ -87,14 +96,25 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     />
-                    {message && <p style={{ color: status === 'pending' ? '#ffa502' : '#ff6b6b' }}>{message}</p>}
-                    <button onClick={handleLogin} disabled={status === 'loading'}>
-                        {status === 'loading' ? '⏳ 로그인 중...' : '로그인'}
-                    </button>
-                    <button onClick={() => setStep('address')}>← 뒤로</button>
+                    {message && (
+                        <p className={status === 'pending' ? 'pending-message' : 'error-message'}>
+                            {message}
+                        </p>
+                    )}
+                    <div className="buttons">
+                        <button
+                            className="connect-btn"
+                            onClick={handleLogin}
+                            disabled={status === 'loading'}
+                        >
+                            {status === 'loading' ? '⏳ 로그인 중...' : '로그인'}
+                        </button>
+                        <button className="back-btn" onClick={() => setStep('address')}>
+                            ← 뒤로
+                        </button>
+                    </div>
                 </>
             )}
-            <button onClick={onBack}>← 모드 선택으로</button>
         </div>
     )
 }

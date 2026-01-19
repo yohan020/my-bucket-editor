@@ -734,3 +734,22 @@ input:focus {
   font-size: 1.5rem;
   color: #888;
 }
+
+/* --- 메시지 스타일 --- */
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.pending-message {
+  color: #ffa502;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* 버튼 disabled 상태 */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
