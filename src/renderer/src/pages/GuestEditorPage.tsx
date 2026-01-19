@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import Editor from '@monaco-editor/react'
+import FileTree from '../components/FileTree'
 
 interface FileNode {
     name: string
@@ -91,22 +92,6 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
         }
     }
 
-    // 재귀적 파일 트리 렌더링
-    const renderTree = (nodes: FileNode[], depth: number): JSX.Element[] => {
-        return nodes.map(node => (
-            <div key={node.path}>
-                <div
-                    className="tree-item"
-                    style={{ paddingLeft: `${16 + depth * 16}px` }}
-                    onClick={() => !node.isDirectory && handleFileClick(node.path)}
-                >
-                    {node.isDirectory ? '📁' : '📄'} {node.name}
-                </div>
-                {node.isDirectory && node.children && renderTree(node.children, depth + 1)}
-            </div>
-        ))
-    }
-
     // 로딩 중 표시
     if (isLoading) {
         return (
@@ -136,7 +121,7 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
             <div className="editor-main">
                 <aside className="file-tree">
                     <div className="sidebar-header">📁 파일 탐색기</div>
-                    {renderTree(fileTree, 0)}
+                    <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">
                     <Editor
