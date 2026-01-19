@@ -41,7 +41,12 @@ export function registerServerHandlers(): void {
 
       // 소켓 서버 장착 (나중에 채팅/코딩용)
       const io = new Server(httpServer, {
-        cors: { origin: '*' } // 모든 곳에서 접속 허용
+        cors: { 
+          origin: '*',  // 모든 곳에서 접속 허용
+          methods: ['GET', 'POST'],
+          credentials: true
+        },
+        transports: ['websocket', 'polling']  // WebSocket 우선, polling 대비
       })
 
       // Socket.io 이벤트 핸들러 등록
