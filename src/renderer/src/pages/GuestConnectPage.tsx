@@ -2,40 +2,99 @@
 import { useState } from 'react'
 
 interface Props {
-    onConnect: (address: string) => void
+    onConnect: (address: string, token: string) => void
     onBack: () => void
 }
 
 export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const [address, setAddress] = useState('')
+    const [step, setStep] = useState<'address' | 'login'>('address')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error'>('idle')
+    const [message, setMessage] = useState('')
 
-    const handleConnect = () => {
-        if (address.trim()) {
-            onConnect(address.trim())
+
+    const handleConnect = async () => {
+        setStatus('loading')
+        try {
+            // 간단한 연결 테스트 (서버에 GET 요청)
+            const res = await fetch(`http://${address}`)
+            if (res.ok) {
+                setStep('login')
+                setStatus('idle')
+            } else {
+                setStatus('error')
+                setMessage('서버에 연결할 수 없습니다.')
+            }
+        } catch (e) {
+            setStatus('error')
+            setMessage('서버에 연결할 수 없습니다.')
+        }
+    }
+
+    const handleLogin = async () => { // 로그인
+        setStatus('loading')
+        try {
+            const res = await fetch(`http://${address}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            const data = await res.json()
+            if (res.ok && data.success) {
+                onConnect(address, data.token)
+            } else {
+                setStatus(res.status === 202 ? 'pending' : 'error')
+                setMessage(data.message)
+            }
+        } catch (e) {
+            setStatus('error')
+            setMessage('로그인 실패')
         }
     }
 
     return (
         <div className="guest-connect-container">
-            <h1>👤 Guest로 참여</h1>
-            <p>Host의 IP:Port를 입력하세요</p>
-
-            <input
-                type="text"
-                placeholder="예: 192.168.0.10:3002"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
-            />
-
-            <div className="buttons">
-                <button onClick={handleConnect} className="connect-btn">
-                    🔗 연결하기
-                </button>
-                <button onClick={onBack} className="back-btn">
-                    ← 뒤로
-                </button>
-            </div>
+            {step === 'address' ? (
+                <>
+                    <h1>👤 Guest로 참여</h1>
+                    <p>Host의 IP:Port를 입력하세요</p>
+                    <input
+                        placeholder="예: 192.168.0.10:3002"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
+                    />
+                    <button onClick={handleConnect} disabled={status === 'loading'}>
+                        {status === 'loading' ? '⏳ 연결 중...' : '🔗 연결 테스트'}
+                    </button>
+                    {message && <p style={{ color: '#ff6b6b' }}>{message}</p>}
+                </>
+            ) : (
+                <>
+                    <h1>🔐 로그인</h1>
+                    <p>서버: {address}</p>
+                    <input
+                        placeholder="이메일"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder="비밀번호"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    />
+                    {message && <p style={{ color: status === 'pending' ? '#ffa502' : '#ff6b6b' }}>{message}</p>}
+                    <button onClick={handleLogin} disabled={status === 'loading'}>
+                        {status === 'loading' ? '⏳ 로그인 중...' : '로그인'}
+                    </button>
+                    <button onClick={() => setStep('address')}>← 뒤로</button>
+                </>
+            )}
+            <button onClick={onBack}>← 모드 선택으로</button>
         </div>
     )
 }

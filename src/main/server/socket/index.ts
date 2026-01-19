@@ -1,11 +1,25 @@
 // [socket.io 핸들러] Guest의 파일 동기화 및 실시간 동시 편집
 import { Server, Socket } from "socket.io"
 import { scanDirectory, readFileContent, writeFileContent } from '../../utils/fileSystem'
+import { verifyToken } from '../utils/jwt'
 
 // 파일별 현재 내용 캐시 (메모리)
 const fileContents = new Map<string, string>()
 
 export function setupSocketHandlers(io: Server, projectPath: string): void {
+
+    //토큰 검증 미들웨어 추가
+    io.use((socket, next) => {
+        const token = socket.handshake.auth?.token
+        if (token && verifyToken(token)) {
+            console.log('✅ 인증 성공:', socket.id)
+            next()
+        } else {
+            console.log('❌ 인증 실패:', socket.id)
+            next(new Error('인증이 필요합니다'))
+        }
+    })
+
     io.on('connection', (socket: Socket) => {
         console.log('🔌 Guest 연결됨:', socket.id)
 

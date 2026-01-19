@@ -36,6 +36,7 @@ export default function App() {
   const [username, setUsername] = useState('')
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [guestAddress, setGuestAddress] = useState('')
+  const [guestToken, setGuestToken] = useState('')
 
   // useProjects 훅이 반환하는 '종합 선물 세트(객체)' 중에서
   // 당장 필요한 '프로젝트 목록(projects)'과 '생성 기능(createProject)'만
@@ -76,8 +77,9 @@ export default function App() {
   if (view === "GUEST_CONNECT") {
     return (
       <GuestConnectPage
-        onConnect={(addr) => {
+        onConnect={(addr, token) => {
           setGuestAddress(addr)
+          setGuestToken(token) // 토큰 저장
           setView('GUEST_EDITOR')
         }}
         onBack={() => setView('MODE_SELECT')}
@@ -89,6 +91,7 @@ export default function App() {
     return (
       <GuestEditorPage
         address={guestAddress}
+        token={guestToken} // 토큰 전달
         onDisconnect={() => setView('MODE_SELECT')}
       />
     )
