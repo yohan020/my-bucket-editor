@@ -2,9 +2,13 @@
 import { Server, Socket } from "socket.io"
 import { scanDirectory, readFileContent, writeFileContent } from '../../utils/fileSystem'
 import { verifyToken } from '../utils/jwt'
+import * as Y from 'yjs'
 
 // 파일별 현재 내용 캐시 (메모리)
 const fileContents = new Map<string, string>()
+
+// 파일별 Yjs 문서 관리
+const yDocs = new Map<string, Y.Doc>()
 
 export function setupSocketHandlers(io: Server, projectPath: string): void {
 
@@ -36,19 +40,35 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
         // 파일 읽기 요청 (room에 참여)
         socket.on('file:read', async (filePath: string) => {
             try {
-                // 캐시에 있으면 캐시 사용, 없으면 파일에서 읽기
-                let content = fileContents.get(filePath)
-                if (!content) {
-                    content = await readFileContent(filePath)
-                    fileContents.set(filePath, content)
+                // Yjs 문서 생성 또는 가져오기
+                if (!yDocs.has(filePath)) {
+                    const yDoc = new Y.Doc()
+                    const yText = yDoc.getText('content')
+                    const content = await readFileContent(filePath)
+                    yText.insert(0, content)
+                    yDocs.set(filePath, yDoc)
                 }
-                
+
+                const yDoc = yDocs.get(filePath)!
+                const state = Y.encodeStateAsUpdate(yDoc)
+
                 // 파일별 room에 참여
                 socket.join(filePath)
-                
-                socket.emit('file:read:response', { success: true, content, filePath })
+                socket.emit('file:read:response', { 
+                    success: true,
+                    filePath,
+                    yjsState: Array.from(state)
+                 })
             } catch (error) {
                 socket.emit('file:read:response', { success: false, error: String(error) })
+            }
+        })
+
+        socket.on('yjs:update', ({ filePath, update }: {filePath: string, update: number[]}) => {
+            const yDoc = yDocs.get(filePath)
+            if (yDoc) {
+                Y.applyUpdate(yDoc, new Uint8Array(update))
+                socket.to(filePath).emit('yjs:update', { filePath, update })
             }
         })
 

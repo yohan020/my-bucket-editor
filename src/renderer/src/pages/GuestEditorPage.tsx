@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import Editor from '@monaco-editor/react'
 import FileTree from '../components/FileTree'
+import * as Y from 'yjs'
+import { MonacoBinding } from 'y-monaco'
 
 interface FileNode {
     name: string
@@ -25,6 +27,9 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
     const [isLoading, setIsLoading] = useState(true)
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
+    const yDocRef = useRef<Y.Doc | null>(null)
+    const bindingRef = useRef<MonacoBinding | null>(null)
+    const editorRef = useRef<any>(null)
 
     // currentFile이 바뀔 때마다 ref 동기화
     useEffect(() => {
@@ -57,9 +62,36 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
         })
 
         socket.on('file:read:response', (data) => {
-            if (data.success) {
+            if (data.success && data.yjsState) {
+                // 기존 문서 정리
+                bindingRef.current?.destroy()
+                yDocRef.current?.destroy()
+
+                // 새 Yjs 문서 생성
+                const yDoc = new Y.Doc()
+                const yText = yDoc.getText('content')
+
+                // 서버 상태 적용
+                Y.applyUpdate(yDoc, new Uint8Array(data.yjsState))
+
+                yDocRef.current = yDoc
                 setCurrentFile(data.filePath)
-                setContent(data.content)
+                setContent(yText.toString())
+
+                if (editorRef.current) {
+                    bindingRef.current = new MonacoBinding(
+                        yText,
+                        editorRef.current.getModel()!,
+                        new Set([editorRef.current])
+                    )
+
+                    yDoc.on('update', (update: Uint8Array) => {
+                        socketRef.current?.emit('yjs:update', {
+                            filePath: data.filePath,
+                            update: Array.from(update)
+                        })
+                    })
+                }
             }
         })
 
@@ -73,6 +105,12 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
         socket.on('file:write:response', (data) => {
             if (data.success) console.log('✅ 저장 완료')
             else console.error('❌ 저장 실패:', data.error)
+        })
+
+        socket.on('yjs:update', (data) => {
+            if (data.filePath === currentFileRef.current && yDocRef.current) {
+                Y.applyUpdate(yDocRef.current, new Uint8Array(data.update))
+            }
         })
 
         return () => { socket.disconnect() }
@@ -130,6 +168,30 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
                         value={content}
                         onChange={handleEditorChange}
                         onMount={(editor, monaco) => {
+                            editorRef.current = editor
+                            // Yjs-Monaco 바인딩
+                            if (yDocRef.current) {
+                                const yText = yDocRef.current.getText('content')
+
+                                // 기존 바인딩 정리
+                                bindingRef.current?.destroy()
+
+                                // Monaco-Yjs 바인딩
+                                bindingRef.current = new MonacoBinding(
+                                    yText,
+                                    editor.getModel()!,
+                                    new Set([editor])
+                                )
+
+                                // 변경 시 서버로 전송
+                                yDocRef.current.on('update', (update: Uint8Array) => {
+                                    socketRef.current?.emit('yjs:update', {
+                                        filePath: currentFileRef.current,
+                                        update: Array.from(update)
+                                    })
+                                })
+                            }
+
                             // Ctrl+S 저장
                             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
                                 if (currentFileRef.current) {
