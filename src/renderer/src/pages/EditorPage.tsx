@@ -131,10 +131,19 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                             height="100%"
                             theme="vs-dark"
                             language={language}
-                            value={fileContent}
                             onMount={(editor, monaco) => {
                                 editorRef.current = editor
-                                // Yjs 바인딩은 file:read:response에서 처리됨
+
+                                // 이미 Yjs 문서가 있으면 바인딩
+                                if (yDocRef.current) {
+                                    const yText = yDocRef.current.getText('content')
+                                    bindingRef.current?.destroy()
+                                    bindingRef.current = new MonacoBinding(
+                                        yText,
+                                        editor.getModel()!,
+                                        new Set([editor])
+                                    )
+                                }
 
                                 // Ctrl+S 저장
                                 editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
