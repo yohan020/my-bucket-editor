@@ -116,6 +116,7 @@ export default function App() {
       <EditorPage
         projectName={currentProject.name}
         projectPath={currentProject.path}
+        port={currentProject.port}
         onBack={() => setView('DASHBOARD')}
       />
     )
