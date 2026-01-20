@@ -12,14 +12,24 @@ const yDocs = new Map<string, Y.Doc>()
 
 export function setupSocketHandlers(io: Server, projectPath: string): void {
 
-    //토큰 검증 미들웨어 추가
+    //토큰 검증 미들웨어 추가 (localhost는 Host이므로 허용)
     io.use((socket, next) => {
+        const origin = socket.handshake.headers.origin || ''
+        const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1')
+        
+        // Host (localhost)는 토큰 없이 허용
+        if (isLocalhost) {
+            console.log('✅ Host 연결:', socket.id)
+            return next()
+        }
+        
+        // Guest는 토큰 필요
         const token = socket.handshake.auth?.token
         if (token && verifyToken(token)) {
-            console.log('✅ 인증 성공:', socket.id)
+            console.log('✅ Guest 인증 성공:', socket.id)
             next()
         } else {
-            console.log('❌ 인증 실패:', socket.id)
+            console.log('❌ Guest 인증 실패:', socket.id)
             next(new Error('인증이 필요합니다'))
         }
     })
