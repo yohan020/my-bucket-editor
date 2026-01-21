@@ -41,18 +41,19 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
 
         if (!editor || !yDoc) return
 
+        // 기존 정리 (중요: Awareness도 정리해야 커서 충돌 방지)
+        bindingRef.current?.destroy()
+        awarenessRef.current?.destroy()
+
         // Awareness 생성
         const awareness = new Awareness(yDoc)
         awarenessRef.current = awareness
 
-        // 사용자 정보 설정 (색상은 랜덤 또는 고정)
+        // 사용자 정보 설정
         awareness.setLocalStateField('user', {
-            name: 'Host',  // 또는 사용자 이름
-            color: '#3b82f6'  // 파란색
+            name: 'Host',
+            color: '#3b82f6'
         })
-
-        // 기존 바인딩 정리
-        bindingRef.current?.destroy()
 
         // 바인딩 생성 (4번째 인자로 awareness 전달!)
         bindingRef.current = new MonacoBinding(
@@ -93,14 +94,12 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             if (data.success && data.yjsState) {
                 console.log('📄 파일 데이터 수신:', data.filePath)
 
-                // 기존 정리
-                if (bindingRef.current) {
-                    bindingRef.current.destroy()
-                    bindingRef.current = null
-                }
-                if (yDocRef.current) {
-                    yDocRef.current.destroy()
-                }
+                // 기존 정리 (Awareness 포함)
+                bindingRef.current?.destroy()
+                bindingRef.current = null
+                awarenessRef.current?.destroy()
+                awarenessRef.current = null
+                yDocRef.current?.destroy()
 
                 // Yjs 문서 생성
                 const yDoc = new Y.Doc()
