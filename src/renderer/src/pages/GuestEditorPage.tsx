@@ -8,6 +8,13 @@ import { MonacoBinding } from 'y-monaco'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 
+const editorOptions = {
+    automaticLayout: true,
+    readOnly: false,
+    scrollBeyondLastLine: false,
+    minimap: { enabled: false }
+}
+
 interface FileNode {
     name: string
     path: string
@@ -181,6 +188,14 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
         console.log('🖥️ Guest Editor 마운트 완료')
         editorRef.current = editor
 
+        // ★ 핵심: 윈도우 포커스 요청 (키보드 입력 활성화)
+        if ((window as any).api?.focusWindow) {
+            (window as any).api.focusWindow().then(() => {
+                console.log('🎯 Guest 윈도우 포커스 완료')
+                editor.focus()
+            }).catch(() => { })
+        }
+
         // Ctrl+S 저장
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
             if (currentFileRef.current && yDocRef.current) {
@@ -232,10 +247,10 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
                 </aside>
                 <main className="editor-container">
                     <Editor
-                        key={currentFile || 'empty'}
                         height="100%"
                         theme="vs-dark"
                         defaultValue=""
+                        options={editorOptions}
                         onMount={handleEditorMount}
                     />
                 </main>

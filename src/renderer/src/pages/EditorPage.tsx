@@ -76,8 +76,12 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         })
     }, [])
 
-    // 컴포넌트 마운트 시 파일 트리 로드
+    // 컴포넌트 마운트 시 포커스 상태 리셋 + 파일 트리 로드
     useEffect(() => {
+        // 에디터 페이지 진입 시 포커스 상태 리셋 (서버 재시작 후에도 강제 포커스 작동)
+        if ((window as any).api?.resetFocus) {
+            (window as any).api.resetFocus()
+        }
         loadFileTree()
     }, [projectPath])
 
@@ -231,7 +235,6 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 {/* 에디터 영역 */}
                 <main className="editor-container">
                     <Editor
-                        key={currentFile || 'empty'}
                         height="100%"
                         theme="vs-dark"
                         language={language}

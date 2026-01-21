@@ -725,7 +725,8 @@ input:focus {
   flex: 1;
   overflow: hidden;
   position: relative;
-  /* Monaco Editor 권장사항 */
+  background-color: #1e1e1e;
+  /* Monaco Editor 배경색과 동일하게 설정하여 깜빡임 방지 */
 }
 
 /* 로딩 화면 */
