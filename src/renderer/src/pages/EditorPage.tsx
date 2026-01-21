@@ -5,6 +5,8 @@ import { io, Socket } from 'socket.io-client'
 import * as Y from 'yjs'
 import { MonacoBinding } from 'y-monaco'
 import Editor from '@monaco-editor/react'
+import { Awareness } from 'y-protocols/awareness'
+import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 
 const editorOptions = {
     automaticLayout: true,
@@ -30,48 +32,47 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
     const bindingRef = useRef<MonacoBinding | null>(null)
     const editorRef = useRef<any>(null)
     const currentFileRef = useRef<string | null>(null)
+    const awarenessRef = useRef<Awareness | null>(null)
 
     // 바인딩 설정 함수 (에디터와 Yjs 문서가 모두 준비되었을 때 호출)
     const setupBinding = useCallback(() => {
         const editor = editorRef.current
         const yDoc = yDocRef.current
 
-        if (!editor || !yDoc) {
-            console.log('⏳ 바인딩 대기 중... editor:', !!editor, 'yDoc:', !!yDoc)
-            return
-        }
+        if (!editor || !yDoc) return
 
-        try {
-            const model = editor.getModel()
-            if (!model) {
-                console.warn('⚠️ Editor model not found')
-                return
+        // Awareness 생성
+        const awareness = new Awareness(yDoc)
+        awarenessRef.current = awareness
+
+        // 사용자 정보 설정 (색상은 랜덤 또는 고정)
+        awareness.setLocalStateField('user', {
+            name: 'Host',  // 또는 사용자 이름
+            color: '#3b82f6'  // 파란색
+        })
+
+        // 기존 바인딩 정리
+        bindingRef.current?.destroy()
+
+        // 바인딩 생성 (4번째 인자로 awareness 전달!)
+        bindingRef.current = new MonacoBinding(
+            yDoc.getText('content'),
+            editor.getModel()!,
+            new Set([editor]),
+            awareness  // ★ 이게 핵심!
+        )
+
+        // Awareness 변경을 서버로 전송
+        awareness.on('update', ({ added, updated, removed }) => {
+            const changedClients = [...added, ...updated, ...removed]
+            if (changedClients.length > 0) {
+                const update = encodeAwarenessUpdate(awareness, changedClients)
+                socketRef.current?.emit('awareness:update', {
+                    filePath: currentFileRef.current,
+                    update: Array.from(update)
+                })
             }
-
-            // 기존 바인딩 정리
-            if (bindingRef.current) {
-                bindingRef.current.destroy()
-                bindingRef.current = null
-            }
-
-            const yText = yDoc.getText('content')
-            console.log('🔗 Yjs 바인딩 생성, 내용 길이:', yText.toString().length)
-
-            // 새 바인딩 생성
-            bindingRef.current = new MonacoBinding(
-                yText,
-                model,
-                new Set([editor])
-            )
-
-            // 에디터 포커스
-            setTimeout(() => {
-                editor.focus()
-            }, 50)
-
-        } catch (e) {
-            console.error('❌ 바인딩 설정 실패:', e)
-        }
+        })
     }, [])
 
     // 컴포넌트 마운트 시 파일 트리 로드
@@ -123,6 +124,12 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 setTimeout(() => {
                     setupBinding()
                 }, 100)
+            }
+        })
+
+        socket.on('awareness:update', ({ filePath, update }: { filePath: string, update: number[] }) => {
+            if (filePath === currentFileRef.current && awarenessRef.current) {
+                applyAwarenessUpdate(awarenessRef.current, new Uint8Array(update), 'remote')
             }
         })
 

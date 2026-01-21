@@ -116,6 +116,12 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
             }
         })
 
+        // Awareness 업데이트를 다른 클라이언트에게 브로드캐스트
+        socket.on('awareness:update', ({ filePath, update }: {filePath: string, update: number[]}) =>{
+            // 같은 파일을 보는 다른 사용자에게 전파
+            socket.to(filePath).emit('awareness:update', { filePath, update })
+        })
+
         // 클라이언트가 파일에서 나갈 때 room 퇴장
         socket.on('file:leave', (filePath: string) => {
             socket.leave(filePath)
