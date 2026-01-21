@@ -724,6 +724,7 @@ input:focus {
 .guest-editor .editor-container {
   flex: 1;
   overflow: hidden;
+  position: relative; /* Monaco Editor 권장사항 */
 }
 
 /* 로딩 화면 */

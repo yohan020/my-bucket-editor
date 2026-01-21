@@ -26,7 +26,10 @@ const api = {
 
   // === 유저 목록 관련 API ===
   getApprovedUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:list', port),
-  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email })
+  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email }),
+
+  // === 윈도우 포커스 API ===
+  focusWindow: (): Promise<boolean> => ipcRenderer.invoke('window:focus')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

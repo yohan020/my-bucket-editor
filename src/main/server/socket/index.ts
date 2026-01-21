@@ -12,14 +12,22 @@ const yDocs = new Map<string, Y.Doc>()
 
 export function setupSocketHandlers(io: Server, projectPath: string): void {
 
-    //토큰 검증 미들웨어 추가 (localhost는 Host이므로 허용)
+    //토큰 검증 미들웨어 추가
     io.use((socket, next) => {
         const origin = socket.handshake.headers.origin || ''
-        const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1')
+        const referer = socket.handshake.headers.referer || ''
         
-        // Host (localhost)는 토큰 없이 허용
+        // Host 연결 확인 (localhost 또는 origin이 비어있는 경우)
+        const isLocalhost = 
+            origin === '' || 
+            origin.includes('localhost') || 
+            origin.includes('127.0.0.1') ||
+            referer.includes('localhost') ||
+            referer.includes('127.0.0.1')
+        
+        // Host는 토큰 없이 허용
         if (isLocalhost) {
-            console.log('✅ Host 연결:', socket.id)
+            console.log('✅ Host 연결:', socket.id, 'origin:', origin || '(empty)')
             return next()
         }
         
@@ -29,7 +37,7 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
             console.log('✅ Guest 인증 성공:', socket.id)
             next()
         } else {
-            console.log('❌ Guest 인증 실패:', socket.id)
+            console.log('❌ Guest 인증 실패:', socket.id, 'origin:', origin)
             next(new Error('인증이 필요합니다'))
         }
     })

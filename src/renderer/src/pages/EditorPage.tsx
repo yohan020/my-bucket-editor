@@ -1,10 +1,17 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { FileNode } from '../types'
 import FileTree from '../components/FileTree'
 import { io, Socket } from 'socket.io-client'
 import * as Y from 'yjs'
 import { MonacoBinding } from 'y-monaco'
 import Editor from '@monaco-editor/react'
+
+const editorOptions = {
+    automaticLayout: true,
+    readOnly: false,
+    scrollBeyondLastLine: false,
+    minimap: { enabled: false }
+}
 
 interface Props {
     projectName: string
@@ -16,65 +23,125 @@ interface Props {
 export default function EditorPage({ projectName, projectPath, port, onBack }: Props) {
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
-    const [fileContent, setFileContent] = useState('')
     const [language, setLanguage] = useState('plaintext')
+
     const socketRef = useRef<Socket | null>(null)
     const yDocRef = useRef<Y.Doc | null>(null)
     const bindingRef = useRef<MonacoBinding | null>(null)
     const editorRef = useRef<any>(null)
     const currentFileRef = useRef<string | null>(null)
 
+    // 바인딩 설정 함수 (에디터와 Yjs 문서가 모두 준비되었을 때 호출)
+    const setupBinding = useCallback(() => {
+        const editor = editorRef.current
+        const yDoc = yDocRef.current
+
+        if (!editor || !yDoc) {
+            console.log('⏳ 바인딩 대기 중... editor:', !!editor, 'yDoc:', !!yDoc)
+            return
+        }
+
+        try {
+            const model = editor.getModel()
+            if (!model) {
+                console.warn('⚠️ Editor model not found')
+                return
+            }
+
+            // 기존 바인딩 정리
+            if (bindingRef.current) {
+                bindingRef.current.destroy()
+                bindingRef.current = null
+            }
+
+            const yText = yDoc.getText('content')
+            console.log('🔗 Yjs 바인딩 생성, 내용 길이:', yText.toString().length)
+
+            // 새 바인딩 생성
+            bindingRef.current = new MonacoBinding(
+                yText,
+                model,
+                new Set([editor])
+            )
+
+            // 에디터 포커스
+            setTimeout(() => {
+                editor.focus()
+            }, 50)
+
+        } catch (e) {
+            console.error('❌ 바인딩 설정 실패:', e)
+        }
+    }, [])
+
     // 컴포넌트 마운트 시 파일 트리 로드
     useEffect(() => {
         loadFileTree()
     }, [projectPath])
 
+    // Socket.io 연결
     useEffect(() => {
         const socket = io(`http://localhost:${port}`)
         socketRef.current = socket
 
         socket.on('connect', () => {
-            console.log('✅ Socket.io 연결 성공!')
+            console.log('✅ Host Socket.io 연결 성공!')
         })
 
         socket.on('file:read:response', (data) => {
             if (data.success && data.yjsState) {
-                bindingRef.current?.destroy()
-                yDocRef.current?.destroy()
+                console.log('📄 파일 데이터 수신:', data.filePath)
 
-                const yDoc = new Y.Doc()
-                const yText = yDoc.getText('content')
-                Y.applyUpdate(yDoc, new Uint8Array(data.yjsState))
-
-                yDocRef.current = yDoc
-                setCurrentFile(data.filePath)
-                setFileContent(yText.toString())
-
-                if (editorRef.current) {
-                    bindingRef.current = new MonacoBinding(
-                        yText,
-                        editorRef.current.getModel()!,
-                        new Set([editorRef.current])
-                    )
-
-                    yDoc.on('update', (update: Uint8Array) => {
-                        socketRef.current?.emit('yjs:update', {
-                            filePath: data.filePath,
-                            update: Array.from(update)
-                        })
-                    })
+                // 기존 정리
+                if (bindingRef.current) {
+                    bindingRef.current.destroy()
+                    bindingRef.current = null
                 }
+                if (yDocRef.current) {
+                    yDocRef.current.destroy()
+                }
+
+                // Yjs 문서 생성
+                const yDoc = new Y.Doc()
+                Y.applyUpdate(yDoc, new Uint8Array(data.yjsState))
+                yDocRef.current = yDoc
+
+                // Yjs 업데이트 감지 -> 소켓 전송
+                yDoc.on('update', (update: Uint8Array, origin: any) => {
+                    if (origin === 'remote') return
+                    socketRef.current?.emit('yjs:update', {
+                        filePath: currentFileRef.current,
+                        update: Array.from(update)
+                    })
+                })
+
+                // 파일 상태 업데이트 (Editor 리마운트 트리거)
+                setCurrentFile(data.filePath)
+
+                // 에디터가 이미 마운트되어 있으면 바인딩 시도
+                // (새 에디터가 마운트되면 onMount에서 다시 시도함)
+                setTimeout(() => {
+                    setupBinding()
+                }, 100)
             }
         })
 
         socket.on('yjs:update', (data) => {
             if (data.filePath === currentFileRef.current && yDocRef.current) {
-                Y.applyUpdate(yDocRef.current, new Uint8Array(data.update))
+                Y.applyUpdate(yDocRef.current, new Uint8Array(data.update), 'remote')
             }
         })
 
-        return () => { socket.disconnect() }
-    }, [port])
+        return () => {
+            socket.disconnect()
+            if (bindingRef.current) {
+                bindingRef.current.destroy()
+            }
+            if (yDocRef.current) {
+                yDocRef.current.destroy()
+            }
+        }
+    }, [port, setupBinding])
 
     const loadFileTree = async () => {
         const result = await window.api.getFileTree(projectPath)
@@ -109,8 +176,39 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         socketRef.current?.emit('file:read', filePath)
     }
 
+    // Editor onMount 핸들러
+    const handleEditorMount = (editor: any, monaco: any) => {
+        console.log('🖥️ Editor 마운트 완료')
+        editorRef.current = editor
+
+        // ★ 핵심: 윈도우 포커스 요청 (키보드 입력 활성화)
+        if ((window as any).api?.focusWindow) {
+            (window as any).api.focusWindow().then(() => {
+                console.log('🎯 윈도우 포커스 완료')
+                editor.focus()
+            }).catch(() => { })
+        }
+
+        // Ctrl+S 저장
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+            if (currentFileRef.current) {
+                const content = editor.getValue()
+                socketRef.current?.emit('file:write', {
+                    filePath: currentFileRef.current,
+                    content
+                })
+                console.log('💾 저장 요청')
+            }
+        })
+
+        // yDoc이 이미 준비되어 있으면 바인딩 시도
+        setTimeout(() => {
+            setupBinding()
+        }, 50)
+    }
+
     return (
-        <div className="editor-layout">
+        <div className="guest-editor">
             {/* 헤더 */}
             <header className="editor-header">
                 <button className="back-btn" onClick={onBack}>← 돌아가기</button>
@@ -120,44 +218,21 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             {/* 메인 영역 */}
             <div className="editor-main">
                 {/* 사이드바 (파일 트리) */}
-                <aside className="editor-sidebar">
+                <aside className="file-tree">
                     <div className="sidebar-header">📁 파일 탐색기</div>
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 {/* 에디터 영역 */}
-                <main className="editor-content">
-                    {currentFile ? (
-                        <Editor
-                            height="100%"
-                            theme="vs-dark"
-                            language={language}
-                            onMount={(editor, monaco) => {
-                                editorRef.current = editor
-
-                                // 이미 Yjs 문서가 있으면 바인딩
-                                if (yDocRef.current) {
-                                    const yText = yDocRef.current.getText('content')
-                                    bindingRef.current?.destroy()
-                                    bindingRef.current = new MonacoBinding(
-                                        yText,
-                                        editor.getModel()!,
-                                        new Set([editor])
-                                    )
-                                }
-
-                                // Ctrl+S 저장
-                                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-                                    if (currentFileRef.current) {
-                                        socketRef.current?.emit('file:write', { filePath: currentFileRef.current })
-                                    }
-                                })
-                            }}
-                        />
-                    ) : (
-                        <div className="editor-placeholder">
-                            👈 왼쪽에서 파일을 선택하세요
-                        </div>
-                    )}
+                <main className="editor-container">
+                    <Editor
+                        key={currentFile || 'empty'}
+                        height="100%"
+                        theme="vs-dark"
+                        language={language}
+                        defaultValue=""
+                        options={editorOptions}
+                        onMount={handleEditorMount}
+                    />
                 </main>
             </div>
         </div>
