@@ -724,7 +724,8 @@ input:focus {
 .guest-editor .editor-container {
   flex: 1;
   overflow: hidden;
-  position: relative; /* Monaco Editor 권장사항 */
+  position: relative;
+  /* Monaco Editor 권장사항 */
 }
 
 /* 로딩 화면 */
@@ -753,4 +754,35 @@ input:focus {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===== 다중 커서 스타일 (y-monaco Awareness) ===== */
+
+/* 원격 사용자 선택 영역 */
+.yRemoteSelection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+/* 원격 사용자 커서 (세로선) */
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid #3b82f6;
+  border-top: none;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* 커서 위에 사용자 이름 표시 */
+.yRemoteSelectionHead::after {
+  content: attr(data-client-id);
+  position: absolute;
+  top: -16px;
+  left: -1px;
+  font-size: 10px;
+  background: #3b82f6;
+  color: white;
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
 }

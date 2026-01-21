@@ -5,6 +5,8 @@ import Editor from '@monaco-editor/react'
 import FileTree from '../components/FileTree'
 import * as Y from 'yjs'
 import { MonacoBinding } from 'y-monaco'
+import { Awareness } from 'y-protocols/awareness'
+import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 
 interface FileNode {
     name: string
@@ -30,6 +32,7 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
     const yDocRef = useRef<Y.Doc | null>(null)
     const bindingRef = useRef<MonacoBinding | null>(null)
     const editorRef = useRef<any>(null)
+    const awarenessRef = useRef<Awareness | null>(null)
 
     // currentFile이 바뀔 때마다 ref 동기화
     useEffect(() => {
@@ -66,6 +69,7 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
                 // 기존 문서 정리
                 bindingRef.current?.destroy()
                 yDocRef.current?.destroy()
+                awarenessRef.current?.destroy()
 
                 // 새 Yjs 문서 생성
                 const yDoc = new Y.Doc()
@@ -78,18 +82,46 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
                 setCurrentFile(data.filePath)
                 setContent(yText.toString())
 
+                // Awareness 생성
+                const awareness = new Awareness(yDoc)
+                awarenessRef.current = awareness
+
+                // 사용자 정보 설정 (랜덤 색상)
+                const colors = ['#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899']
+                const randomColor = colors[Math.floor(Math.random() * colors.length)]
+                awareness.setLocalStateField('user', {
+                    name: 'Guest',
+                    color: randomColor
+                })
+
                 if (editorRef.current) {
+                    // 바인딩 생성 (4번째 인자로 awareness 전달!)
                     bindingRef.current = new MonacoBinding(
                         yText,
                         editorRef.current.getModel()!,
-                        new Set([editorRef.current])
+                        new Set([editorRef.current]),
+                        awareness  // ★ 다중 커서 핵심!
                     )
 
-                    yDoc.on('update', (update: Uint8Array) => {
+                    // Yjs 업데이트 서버로 전송
+                    yDoc.on('update', (update: Uint8Array, origin: any) => {
+                        if (origin === 'remote') return
                         socketRef.current?.emit('yjs:update', {
                             filePath: data.filePath,
                             update: Array.from(update)
                         })
+                    })
+
+                    // Awareness 변경을 서버로 전송
+                    awareness.on('update', ({ added, updated, removed }: { added: number[], updated: number[], removed: number[] }) => {
+                        const changedClients = [...added, ...updated, ...removed]
+                        if (changedClients.length > 0) {
+                            const update = encodeAwarenessUpdate(awareness, changedClients)
+                            socketRef.current?.emit('awareness:update', {
+                                filePath: currentFileRef.current,
+                                update: Array.from(update)
+                            })
+                        }
                     })
                 }
             }
@@ -109,11 +141,23 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
 
         socket.on('yjs:update', (data) => {
             if (data.filePath === currentFileRef.current && yDocRef.current) {
-                Y.applyUpdate(yDocRef.current, new Uint8Array(data.update))
+                Y.applyUpdate(yDocRef.current, new Uint8Array(data.update), 'remote')
             }
         })
 
-        return () => { socket.disconnect() }
+        // Awareness 업데이트 수신
+        socket.on('awareness:update', ({ filePath, update }: { filePath: string, update: number[] }) => {
+            if (filePath === currentFileRef.current && awarenessRef.current) {
+                applyAwarenessUpdate(awarenessRef.current, new Uint8Array(update), 'remote')
+            }
+        })
+
+        return () => {
+            socket.disconnect()
+            bindingRef.current?.destroy()
+            yDocRef.current?.destroy()
+            awarenessRef.current?.destroy()
+        }
     }, [address])
 
     const handleFileClick = (path: string) => {
@@ -169,27 +213,21 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
                         onChange={handleEditorChange}
                         onMount={(editor, monaco) => {
                             editorRef.current = editor
-                            // Yjs-Monaco 바인딩
-                            if (yDocRef.current) {
+
+                            // Yjs-Monaco 바인딩 (yDoc과 awareness가 있으면)
+                            if (yDocRef.current && awarenessRef.current) {
                                 const yText = yDocRef.current.getText('content')
 
                                 // 기존 바인딩 정리
                                 bindingRef.current?.destroy()
 
-                                // Monaco-Yjs 바인딩
+                                // Monaco-Yjs 바인딩 (Awareness 포함)
                                 bindingRef.current = new MonacoBinding(
                                     yText,
                                     editor.getModel()!,
-                                    new Set([editor])
+                                    new Set([editor]),
+                                    awarenessRef.current  // ★ 다중 커서!
                                 )
-
-                                // 변경 시 서버로 전송
-                                yDocRef.current.on('update', (update: Uint8Array) => {
-                                    socketRef.current?.emit('yjs:update', {
-                                        filePath: currentFileRef.current,
-                                        update: Array.from(update)
-                                    })
-                                })
                             }
 
                             // Ctrl+S 저장
