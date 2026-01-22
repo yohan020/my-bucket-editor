@@ -32,6 +32,7 @@ interface Props {
 export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
+    const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
     const [isConnected, setIsConnected] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
@@ -41,6 +42,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     const bindingRef = useRef<MonacoBinding | null>(null)
     const editorRef = useRef<any>(null)
     const awarenessRef = useRef<Awareness | null>(null)
+    const tabBarRef = useRef<HTMLDivElement | null>(null)  // 탭 스크롤용
 
     // 바인딩 설정 함수 (EditorPage와 동일한 패턴)
     const setupBinding = useCallback(() => {
@@ -180,8 +182,42 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         }
     }, [address, setupBinding])
 
+    // 파일 클릭 핸들러 (탭에 추가)
     const handleFileClick = (path: string) => {
+        // 탭에 없으면 추가
+        setOpenTabs(prev => {
+            if (!prev.includes(path)) {
+                return [...prev, path]
+            }
+            return prev
+        })
         socketRef.current?.emit('file:read', path)
+    }
+
+    // 탭 클릭 핸들러
+    const handleTabClick = (path: string) => {
+        if (currentFile === path) return
+        socketRef.current?.emit('file:read', path)
+    }
+
+    // 탭 닫기 핸들러
+    const handleTabClose = (path: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        setOpenTabs(prev => prev.filter(f => f !== path))
+
+        if (currentFile === path) {
+            const remaining = openTabs.filter(f => f !== path)
+            if (remaining.length > 0) {
+                handleTabClick(remaining[remaining.length - 1])
+            } else {
+                setCurrentFile(null)
+            }
+        }
+    }
+
+    // 파일명만 추출
+    const getFileName = (filePath: string) => {
+        return filePath.split(/[\\/]/).pop() || filePath
     }
 
     // Editor onMount 핸들러
@@ -247,6 +283,42 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">
+                    {/* 탭 바 */}
+                    {openTabs.length > 0 && (
+                        <div className="tab-bar-container">
+                            <div className="tab-bar" ref={tabBarRef}>
+                                {openTabs.map(filePath => (
+                                    <div
+                                        key={filePath}
+                                        className={`tab ${currentFile === filePath ? 'active' : ''}`}
+                                        onClick={() => handleTabClick(filePath)}
+                                    >
+                                        <span className="tab-name">{getFileName(filePath)}</span>
+                                        <button
+                                            className="tab-close"
+                                            onClick={(e) => handleTabClose(filePath, e)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="tab-scroll-buttons">
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: -150, behavior: 'smooth' })}
+                                >
+                                    ◀
+                                </button>
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: 150, behavior: 'smooth' })}
+                                >
+                                    ▶
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <Editor
                         height="100%"
                         theme="vs-dark"

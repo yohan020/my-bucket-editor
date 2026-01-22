@@ -998,3 +998,111 @@ button:disabled {
 .approved-panel {
   border-left: 2px solid #22c55e;
 }
+
+/* --- 탭 바 (VS Code 스타일) --- */
+.tab-bar-container {
+  display: flex;
+  background: #252526;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.tab-scroll-buttons {
+  display: flex;
+  flex-shrink: 0;
+  border-left: 1px solid #333;
+}
+
+.tab-scroll-btn {
+  background: #2d2d2d;
+  border: none;
+  color: #888;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.tab-scroll-btn:first-child {
+  border-right: 1px solid #333;
+}
+
+.tab-scroll-btn:hover {
+  background: #3c3c3c;
+  color: #fff;
+}
+
+.tab-bar {
+  display: flex;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 0;
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tab-bar::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border-right: 1px solid #333;
+  cursor: pointer;
+  min-width: 100px;
+  max-width: 180px;
+  gap: 8px;
+  transition: background 0.1s;
+}
+
+.tab:hover {
+  background: #3c3c3c;
+}
+
+.tab.active {
+  background: #1e1e1e;
+  border-bottom: 2px solid #0078d4;
+}
+
+.tab-name {
+  flex: 1;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+.tab:hover .tab-close,
+.tab.active .tab-close {
+  opacity: 1;
+}
+
+.tab-close:hover {
+  background: #444;
+  color: #fff;
+}
+
+/* editor-container flex 조정 */
+.editor-container {
+  display: flex;
+  flex-direction: column;
+}
