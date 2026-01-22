@@ -10,7 +10,11 @@ const fileContents = new Map<string, string>()
 // 파일별 Yjs 문서 관리
 const yDocs = new Map<string, Y.Doc>()
 
+// 현재 접속 중인 유저 목록
+const connectedUsers = new Map<string, string>()
+
 export function setupSocketHandlers(io: Server, projectPath: string): void {
+
 
     //토큰 검증 미들웨어 추가
     io.use((socket, next) => {
@@ -44,6 +48,11 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
 
     io.on('connection', (socket: Socket) => {
         console.log('🔌 Guest 연결됨:', socket.id)
+
+        // 접속 유저 등록 및 브로드 캐스트
+        const userEmail = socket.handshake.auth?.email || 'Host'
+        connectedUsers.set(socket.id, userEmail)
+        io.emit('users:online', Array.from(connectedUsers.values()))
 
         // 파일 트리 요청
         socket.on('file:tree', async () => {
@@ -127,8 +136,19 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
             socket.leave(filePath)
         })
 
+        // 접속자 목록 요청
+        socket.on('users:online', () => {
+            socket.emit('users:online', Array.from(connectedUsers.values()))
+        })
+
         socket.on('disconnect', () => {
             console.log('🔌 Guest 연결 끊김:', socket.id)
+
+            // 유저 제거 및 브로드캐스트
+            connectedUsers.delete(socket.id)
+            io.emit('users:online', Array.from(connectedUsers.values()))
         })
+
+
     })
 }

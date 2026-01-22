@@ -2,7 +2,7 @@
 import { useState } from 'react'
 
 interface Props {
-    onConnect: (address: string, token: string) => void
+    onConnect: (address: string, token: string, email: string) => void
     onBack: () => void
 }
 
@@ -43,7 +43,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             })
             const data = await res.json()
             if (res.ok && data.success) {
-                onConnect(address, data.token)
+                onConnect(address, data.token, email)
             } else {
                 setStatus(res.status === 202 ? 'pending' : 'error')
                 setMessage(data.message)

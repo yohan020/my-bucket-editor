@@ -25,10 +25,11 @@ interface FileNode {
 interface Props {
     address: string
     token: string
+    email: string
     onDisconnect: () => void
 }
 
-export default function GuestEditorPage({ address, token, onDisconnect }: Props) {
+export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
@@ -97,7 +98,7 @@ export default function GuestEditorPage({ address, token, onDisconnect }: Props)
     useEffect(() => {
         console.log('🔄 Socket.io 연결 시도:', `http://${address}`)
         const socket = io(`http://${address}`, {
-            auth: { token }
+            auth: { token, email }  // 이메일도 함께 전달
         })
         socketRef.current = socket
 
