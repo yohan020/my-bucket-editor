@@ -27,6 +27,10 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [language, setLanguage] = useState('plaintext')
 
+    const [showUserPanel, setShowUserPanel] = useState(false)
+    const [approvedUsers, setApprovedUsers] = useState<{ email: string }[]>([])
+    const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+
     const socketRef = useRef<Socket | null>(null)
     const yDocRef = useRef<Y.Doc | null>(null)
     const bindingRef = useRef<MonacoBinding | null>(null)
@@ -83,6 +87,11 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             (window as any).api.resetFocus()
         }
         loadFileTree()
+
+        // 허가된 유저 목록 가져오기
+        window.api.getApprovedUsers(port).then(users => {
+            setApprovedUsers(users)
+        })
     }, [projectPath])
 
     // Socket.io 연결
@@ -141,6 +150,14 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 Y.applyUpdate(yDocRef.current, new Uint8Array(data.update), 'remote')
             }
         })
+
+        // 접속자 목록 수신
+        socket.on('users:online', (emails: string[]) => {
+            setOnlineUsers(emails)
+        })
+
+        // 접속자 목록 요청
+        socket.emit('users:online')
 
         return () => {
             socket.disconnect()
@@ -224,6 +241,13 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 <button className="back-btn" onClick={onBack}>← 돌아가기</button>
                 <h2>{projectName}</h2>
                 <span className="project-path">{projectPath}</span>
+                {/* 토글 버튼 */}
+                <button
+                    className="toggle-panel-btn"
+                    onClick={() => setShowUserPanel(!showUserPanel)}
+                >
+                    👥 {onlineUsers.length}
+                </button>
             </header>
             {/* 메인 영역 */}
             <div className="editor-main">
@@ -243,6 +267,32 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                         onMount={handleEditorMount}
                     />
                 </main>
+                {/* 우측 패널 (접속자 목록) */}
+                {showUserPanel && (
+                    <aside className="right-panel">
+                        <div className="panel-header">
+                            <span>👥 접속자</span>
+                            <button onClick={() => setShowUserPanel(false)}>✕</button>
+                        </div>
+                        <ul className="user-list">
+                            <li className="online">
+                                <span className="status-dot">🟢</span>
+                                <span>Host</span>
+                                <span className="status-text">접속중</span>
+                            </li>
+                            {approvedUsers.map(user => {
+                                const isOnline = onlineUsers.includes(user.email)
+                                return (
+                                    <li key={user.email} className={isOnline ? 'online' : 'offline'}>
+                                        <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
+                                        <span>{user.email}</span>
+                                        <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
+                                    </li>
+                                )
+                            })}
+                        </ul>
+                    </aside>
+                )}
             </div>
         </div>
     )

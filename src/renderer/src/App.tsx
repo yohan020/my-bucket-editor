@@ -19,14 +19,18 @@ declare global {
       createProject: (project: Project) => Promise<boolean>
       startServer: (port: number, projectPath: string) => Promise<{ success: boolean; message: string }>
       stopServer: (port: number) => Promise<boolean>
-      approveUser: (port: number, email: string, allow: boolean) => Promise<{ success: boolean; message: string }>
       onGuestRequest: (callback: (data: { port: number; email: string }) => void) => () => void
       getFileTree: (dirPath: string) => Promise<any>
       readFile: (filePath: string) => Promise<any>
       writeFile: (filePath: string, content: string) => Promise<any>
       deleteProject: (projectId: number) => Promise<any>
       getApprovedUsers: (port: number) => Promise<any[]>
+      getPendingUsers: (port: number) => Promise<any[]>
       removeApprovedUser: (port: number, email: string) => Promise<any>
+      approveUser: (port: number, email: string) => Promise<any>
+      rejectUser: (port: number, email: string) => Promise<any>
+      focusWindow: () => Promise<boolean>
+      resetFocus: () => Promise<boolean>
     }
   }
 }
@@ -37,6 +41,7 @@ export default function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [guestAddress, setGuestAddress] = useState('')
   const [guestToken, setGuestToken] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
 
   // useProjects 훅에서 모든 필요한 상태와 함수를 가져옴
   const { projects, activeProjectIds, createProject, toggleServer, deleteProject } = useProjects()
@@ -69,9 +74,10 @@ export default function App() {
   if (view === "GUEST_CONNECT") {
     return (
       <GuestConnectPage
-        onConnect={(addr, token) => {
+        onConnect={(addr, token, email) => {
           setGuestAddress(addr)
-          setGuestToken(token) // 토큰 저장
+          setGuestToken(token)
+          setGuestEmail(email)
           setView('GUEST_EDITOR')
         }}
         onBack={() => setView('MODE_SELECT')}
@@ -83,7 +89,8 @@ export default function App() {
     return (
       <GuestEditorPage
         address={guestAddress}
-        token={guestToken} // 토큰 전달
+        token={guestToken}
+        email={guestEmail}
         onDisconnect={() => setView('MODE_SELECT')}
       />
     )
