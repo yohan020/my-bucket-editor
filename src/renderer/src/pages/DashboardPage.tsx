@@ -31,8 +31,13 @@ export default function DashboardPage({
             `요청자 ID: ${email}\n\n` +
             `이 사용자의 접속을 허용하시겠습니까?`
         )
-        await window.api.approveUser(port, email, isApproved)
-        alert(isApproved ? `${email} 님을 승인했습니다!` : `${email} 님의 접속을 거절했습니다.`)
+        if (isApproved) {
+            await window.api.approveUser(port, email)
+            alert(`${email} 님을 승인했습니다!`)
+        } else {
+            await window.api.rejectUser(port, email)
+            alert(`${email} 님의 접속을 거절했습니다.`)
+        }
     }, [])
 
     useGuestRequest(handleApprove)
@@ -56,6 +61,15 @@ export default function DashboardPage({
         }
     }
 
+    // 에디터 열기 전 서버 체크
+    const handleOpenEditor = (project: Project) => {
+        if (!activeProjectIds.includes(project.id)) {
+            alert('⚠️ 서버를 먼저 시작해주세요!\n\n서버가 실행 중일 때만 에디터에 접속할 수 있습니다.')
+            return
+        }
+        onOpenEditor(project)
+    }
+
     return (
         <div className="dashboard-layout">
             <Header username={username} projectCount={projects.length} onCreateClick={onCreateClick} />
@@ -63,7 +77,7 @@ export default function DashboardPage({
                 projects={projects}
                 activeProjectIds={activeProjectIds}
                 onToggleServer={handleToggleServer}
-                onOpenEditor={onOpenEditor}
+                onOpenEditor={handleOpenEditor}
                 onDeleteProject={handleDeleteProject}
             />
         </div>
