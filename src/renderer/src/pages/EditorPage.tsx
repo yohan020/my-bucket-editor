@@ -7,6 +7,7 @@ import { MonacoBinding } from 'y-monaco'
 import Editor from '@monaco-editor/react'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
+import { getFileIconUrl } from '../utils/fileIcons'
 
 const editorOptions = {
     automaticLayout: true,
@@ -25,6 +26,7 @@ interface Props {
 export default function EditorPage({ projectName, projectPath, port, onBack }: Props) {
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
+    const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
     const [language, setLanguage] = useState('plaintext')
 
     const [showUserPanel, setShowUserPanel] = useState(false)
@@ -37,6 +39,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
     const editorRef = useRef<any>(null)
     const currentFileRef = useRef<string | null>(null)
     const awarenessRef = useRef<Awareness | null>(null)
+    const tabBarRef = useRef<HTMLDivElement | null>(null)  // 탭 스크롤용
 
     // 바인딩 설정 함수 (에디터와 Yjs 문서가 모두 준비되었을 때 호출)
     const setupBinding = useCallback(() => {
@@ -196,11 +199,49 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         return langMap[ext || ''] || 'plaintext'
     }
 
-    // 파일 클릭 핸들러
+    // 파일 클릭 핸들러 (탭에 추가)
     const handleFileClick = (filePath: string) => {
         currentFileRef.current = filePath
         setLanguage(detectLanguage(filePath))
+
+        // 탭에 없으면 추가
+        setOpenTabs(prev => {
+            if (!prev.includes(filePath)) {
+                return [...prev, filePath]
+            }
+            return prev
+        })
+
         socketRef.current?.emit('file:read', filePath)
+    }
+
+    // 탭 클릭 핸들러 (파일 전환)
+    const handleTabClick = (filePath: string) => {
+        if (currentFile === filePath) return
+        currentFileRef.current = filePath
+        setLanguage(detectLanguage(filePath))
+        socketRef.current?.emit('file:read', filePath)
+    }
+
+    // 탭 닫기 핸들러
+    const handleTabClose = (filePath: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        setOpenTabs(prev => prev.filter(f => f !== filePath))
+
+        // 현재 탭을 닫으면 다른 탭으로 전환
+        if (currentFile === filePath) {
+            const remaining = openTabs.filter(f => f !== filePath)
+            if (remaining.length > 0) {
+                handleTabClick(remaining[remaining.length - 1])
+            } else {
+                setCurrentFile(null)
+            }
+        }
+    }
+
+    // 파일명만 추출
+    const getFileName = (filePath: string) => {
+        return filePath.split(/[\\/]/).pop() || filePath
     }
 
     // Editor onMount 핸들러
@@ -258,6 +299,49 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 </aside>
                 {/* 에디터 영역 */}
                 <main className="editor-container">
+                    {/* 탭 바 */}
+                    {openTabs.length > 0 && (
+                        <div className="tab-bar-container">
+                            <div className="tab-bar" ref={tabBarRef}>
+                                {openTabs.map(filePath => (
+                                    <div
+                                        key={filePath}
+                                        className={`tab ${currentFile === filePath ? 'active' : ''}`}
+                                        onClick={() => handleTabClick(filePath)}
+                                    >
+                                        <img
+                                            src={getFileIconUrl(getFileName(filePath))}
+                                            alt=""
+                                            className="tab-icon-img"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                        <span className="tab-name">{getFileName(filePath)}</span>
+                                        <button
+                                            className="tab-close"
+                                            onClick={(e) => handleTabClose(filePath, e)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="tab-scroll-buttons">
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: -150, behavior: 'smooth' })}
+                                >
+                                    ◀
+                                </button>
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: 150, behavior: 'smooth' })}
+                                >
+                                    ▶
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {/* 에디터 */}
                     <Editor
                         height="100%"
                         theme="vs-dark"
@@ -280,16 +364,29 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                                 <span>Host</span>
                                 <span className="status-text">접속중</span>
                             </li>
-                            {approvedUsers.map(user => {
-                                const isOnline = onlineUsers.includes(user.email)
-                                return (
-                                    <li key={user.email} className={isOnline ? 'online' : 'offline'}>
-                                        <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
-                                        <span>{user.email}</span>
-                                        <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
-                                    </li>
-                                )
-                            })}
+                            {/* 온라인 유저 먼저 (접속 순서대로), 오프라인은 뒤로 */}
+                            {[...approvedUsers]
+                                .sort((a, b) => {
+                                    const aOnline = onlineUsers.includes(a.email)
+                                    const bOnline = onlineUsers.includes(b.email)
+                                    if (aOnline && !bOnline) return -1  // a가 온라인이면 앞으로
+                                    if (!aOnline && bOnline) return 1   // b가 온라인이면 앞으로
+                                    // 둘 다 온라인이면 접속 순서대로 (onlineUsers 배열 순서)
+                                    if (aOnline && bOnline) {
+                                        return onlineUsers.indexOf(a.email) - onlineUsers.indexOf(b.email)
+                                    }
+                                    return 0
+                                })
+                                .map(user => {
+                                    const isOnline = onlineUsers.includes(user.email)
+                                    return (
+                                        <li key={user.email} className={isOnline ? 'online' : 'offline'}>
+                                            <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
+                                            <span>{user.email}</span>
+                                            <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
+                                        </li>
+                                    )
+                                })}
                         </ul>
                     </aside>
                 )}

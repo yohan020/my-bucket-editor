@@ -7,6 +7,7 @@ import * as Y from 'yjs'
 import { MonacoBinding } from 'y-monaco'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
+import { getFileIconUrl } from '../utils/fileIcons'
 
 const editorOptions = {
     automaticLayout: true,
@@ -32,8 +33,13 @@ interface Props {
 export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
+    const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
     const [isConnected, setIsConnected] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+
+    // 유저 패널 상태
+    const [showUserPanel, setShowUserPanel] = useState(false)
+    const [onlineUsers, setOnlineUsers] = useState<string[]>([])
 
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
@@ -41,6 +47,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     const bindingRef = useRef<MonacoBinding | null>(null)
     const editorRef = useRef<any>(null)
     const awarenessRef = useRef<Awareness | null>(null)
+    const tabBarRef = useRef<HTMLDivElement | null>(null)  // 탭 스크롤용
 
     // 바인딩 설정 함수 (EditorPage와 동일한 패턴)
     const setupBinding = useCallback(() => {
@@ -119,6 +126,15 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             if (data.success) setFileTree(data.tree)
         })
 
+        // 온라인 유저 목록 수신
+        socket.on('users:online', (emails: string[]) => {
+            console.log('👥 Guest 온라인 유저 목록:', emails)
+            setOnlineUsers(emails)
+        })
+
+        // 접속 시 온라인 유저 목록 요청
+        socket.emit('users:online')
+
         socket.on('file:read:response', (data) => {
             if (data.success && data.yjsState) {
                 console.log('📄 Guest 파일 데이터 수신:', data.filePath)
@@ -180,8 +196,42 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         }
     }, [address, setupBinding])
 
+    // 파일 클릭 핸들러 (탭에 추가)
     const handleFileClick = (path: string) => {
+        // 탭에 없으면 추가
+        setOpenTabs(prev => {
+            if (!prev.includes(path)) {
+                return [...prev, path]
+            }
+            return prev
+        })
         socketRef.current?.emit('file:read', path)
+    }
+
+    // 탭 클릭 핸들러
+    const handleTabClick = (path: string) => {
+        if (currentFile === path) return
+        socketRef.current?.emit('file:read', path)
+    }
+
+    // 탭 닫기 핸들러
+    const handleTabClose = (path: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        setOpenTabs(prev => prev.filter(f => f !== path))
+
+        if (currentFile === path) {
+            const remaining = openTabs.filter(f => f !== path)
+            if (remaining.length > 0) {
+                handleTabClick(remaining[remaining.length - 1])
+            } else {
+                setCurrentFile(null)
+            }
+        }
+    }
+
+    // 파일명만 추출
+    const getFileName = (filePath: string) => {
+        return filePath.split(/[\\/]/).pop() || filePath
     }
 
     // Editor onMount 핸들러
@@ -239,6 +289,13 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 <span>📝 Guest Editor</span>
                 <span className="current-file">{currentFile || '파일을 선택하세요'}</span>
                 <span>{isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}</span>
+                {/* 유저 패널 토글 버튼 */}
+                <button
+                    className="toggle-panel-btn"
+                    onClick={() => setShowUserPanel(!showUserPanel)}
+                >
+                    👥 {onlineUsers.length + 1}
+                </button>
                 <button onClick={onDisconnect}>연결 해제</button>
             </header>
             <div className="editor-main">
@@ -247,6 +304,48 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">
+                    {/* 탭 바 */}
+                    {openTabs.length > 0 && (
+                        <div className="tab-bar-container">
+                            <div className="tab-bar" ref={tabBarRef}>
+                                {openTabs.map(filePath => (
+                                    <div
+                                        key={filePath}
+                                        className={`tab ${currentFile === filePath ? 'active' : ''}`}
+                                        onClick={() => handleTabClick(filePath)}
+                                    >
+                                        <img
+                                            src={getFileIconUrl(getFileName(filePath))}
+                                            alt=""
+                                            className="tab-icon-img"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                        <span className="tab-name">{getFileName(filePath)}</span>
+                                        <button
+                                            className="tab-close"
+                                            onClick={(e) => handleTabClose(filePath, e)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="tab-scroll-buttons">
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: -150, behavior: 'smooth' })}
+                                >
+                                    ◀
+                                </button>
+                                <button
+                                    className="tab-scroll-btn"
+                                    onClick={() => tabBarRef.current?.scrollBy({ left: 150, behavior: 'smooth' })}
+                                >
+                                    ▶
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <Editor
                         height="100%"
                         theme="vs-dark"
@@ -255,6 +354,31 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                         onMount={handleEditorMount}
                     />
                 </main>
+                {/* 유저 패널 (접속자 목록) */}
+                {showUserPanel && (
+                    <aside className="right-panel">
+                        <div className="panel-header">
+                            <span>👥 접속자</span>
+                            <button onClick={() => setShowUserPanel(false)}>✕</button>
+                        </div>
+                        <ul className="user-list">
+                            {/* Host는 항상 온라인 */}
+                            <li className="online">
+                                <span className="status-dot">🟢</span>
+                                <span>Host</span>
+                                <span className="status-text">접속중</span>
+                            </li>
+                            {/* 다른 온라인 유저들 */}
+                            {onlineUsers.map(userEmail => (
+                                <li key={userEmail} className={userEmail === email ? 'online self' : 'online'}>
+                                    <span className="status-dot">🟢</span>
+                                    <span>{userEmail === email ? `${userEmail} (나)` : userEmail}</span>
+                                    <span className="status-text">접속중</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </aside>
+                )}
             </div>
         </div>
     )
