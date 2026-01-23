@@ -49,6 +49,12 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     const editorRef = useRef<any>(null)
     const awarenessRef = useRef<Awareness | null>(null)
     const tabBarRef = useRef<HTMLDivElement | null>(null)  // 탭 스크롤용
+    const onDisconnectRef = useRef(onDisconnect)  // 클로저 문제 해결용
+
+    // onDisconnect 콜백 업데이트
+    useEffect(() => {
+        onDisconnectRef.current = onDisconnect
+    }, [onDisconnect])
 
     // 바인딩 설정 함수 (EditorPage와 동일한 패턴)
     const setupBinding = useCallback(() => {
@@ -119,11 +125,6 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
 
         socket.on('connect_error', (error) => {
             console.error('❌ Socket.io 연결 에러:', error.message)
-            // 초기 연결 실패가 아닌 경우에만 (이미 연결된 적이 있는 경우)
-            if (isConnected) {
-                alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했을 수 있습니다.')
-                onDisconnect()
-            }
         })
 
         socket.on('disconnect', (reason) => {
@@ -131,16 +132,12 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             setIsConnected(false)
 
             // 서버 측에서 연결을 끊은 경우에만 자동 나가기
-            // 'io server disconnect' = 서버가 socket.disconnect() 호출
-            // 'transport close' = 서버 종료, 네트워크 끊김
-            // 'ping timeout' = 서버 응답 없음
             if (reason === 'io server disconnect' ||
                 reason === 'transport close' ||
                 reason === 'ping timeout') {
                 alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했거나 네트워크 문제가 발생했습니다.')
-                onDisconnect()
+                onDisconnectRef.current()  // ref를 통해 호출
             }
-            // 'io client disconnect' = 클라이언트가 disconnect() 호출 (정상 종료)
         })
 
         socket.on('file:tree:response', (data) => {
