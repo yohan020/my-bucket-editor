@@ -7,6 +7,7 @@ import { MonacoBinding } from 'y-monaco'
 import Editor from '@monaco-editor/react'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
+import { getFileIconUrl } from '../utils/fileIcons'
 
 const editorOptions = {
     automaticLayout: true,
@@ -308,6 +309,12 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                                         className={`tab ${currentFile === filePath ? 'active' : ''}`}
                                         onClick={() => handleTabClick(filePath)}
                                     >
+                                        <img
+                                            src={getFileIconUrl(getFileName(filePath))}
+                                            alt=""
+                                            className="tab-icon-img"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
                                         <span className="tab-name">{getFileName(filePath)}</span>
                                         <button
                                             className="tab-close"
