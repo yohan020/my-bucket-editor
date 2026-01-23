@@ -1071,6 +1071,11 @@ button:disabled {
   border-bottom: 2px solid #0078d4;
 }
 
+.tab-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
 .tab-name {
   flex: 1;
   font-size: 0.85rem;
@@ -1105,4 +1110,49 @@ button:disabled {
 .editor-container {
   display: flex;
   flex-direction: column;
+}
+
+/* vscode-icons SVG 아이콘 스타일 */
+.tree-icon-img {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.tree-icon {
+  margin-right: 6px;
+  font-size: 1rem;
+}
+
+.tab-icon-img {
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.tab-icon {
+  margin-right: 4px;
+  font-size: 0.9rem;
+}
+
+/* 파일 트리 스타일 */
+.file-tree {
+  padding-left: 8px;
+  padding-top: 4px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.tree-item:hover {
+  background: rgba(255, 255, 255, 0.05);
 }

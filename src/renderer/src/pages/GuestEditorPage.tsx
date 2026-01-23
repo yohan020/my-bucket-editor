@@ -7,6 +7,7 @@ import * as Y from 'yjs'
 import { MonacoBinding } from 'y-monaco'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
+import { getFileIconUrl } from '../utils/fileIcons'
 
 const editorOptions = {
     automaticLayout: true,
@@ -35,6 +36,10 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
     const [isConnected, setIsConnected] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+
+    // 유저 패널 상태
+    const [showUserPanel, setShowUserPanel] = useState(false)
+    const [onlineUsers, setOnlineUsers] = useState<string[]>([])
 
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
@@ -120,6 +125,15 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         socket.on('file:tree:response', (data) => {
             if (data.success) setFileTree(data.tree)
         })
+
+        // 온라인 유저 목록 수신
+        socket.on('users:online', (emails: string[]) => {
+            console.log('👥 Guest 온라인 유저 목록:', emails)
+            setOnlineUsers(emails)
+        })
+
+        // 접속 시 온라인 유저 목록 요청
+        socket.emit('users:online')
 
         socket.on('file:read:response', (data) => {
             if (data.success && data.yjsState) {
@@ -275,6 +289,13 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 <span>📝 Guest Editor</span>
                 <span className="current-file">{currentFile || '파일을 선택하세요'}</span>
                 <span>{isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}</span>
+                {/* 유저 패널 토글 버튼 */}
+                <button
+                    className="toggle-panel-btn"
+                    onClick={() => setShowUserPanel(!showUserPanel)}
+                >
+                    👥 {onlineUsers.length + 1}
+                </button>
                 <button onClick={onDisconnect}>연결 해제</button>
             </header>
             <div className="editor-main">
@@ -293,6 +314,12 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                                         className={`tab ${currentFile === filePath ? 'active' : ''}`}
                                         onClick={() => handleTabClick(filePath)}
                                     >
+                                        <img
+                                            src={getFileIconUrl(getFileName(filePath))}
+                                            alt=""
+                                            className="tab-icon-img"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
                                         <span className="tab-name">{getFileName(filePath)}</span>
                                         <button
                                             className="tab-close"
@@ -327,6 +354,31 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                         onMount={handleEditorMount}
                     />
                 </main>
+                {/* 유저 패널 (접속자 목록) */}
+                {showUserPanel && (
+                    <aside className="right-panel">
+                        <div className="panel-header">
+                            <span>👥 접속자</span>
+                            <button onClick={() => setShowUserPanel(false)}>✕</button>
+                        </div>
+                        <ul className="user-list">
+                            {/* Host는 항상 온라인 */}
+                            <li className="online">
+                                <span className="status-dot">🟢</span>
+                                <span>Host</span>
+                                <span className="status-text">접속중</span>
+                            </li>
+                            {/* 다른 온라인 유저들 */}
+                            {onlineUsers.map(userEmail => (
+                                <li key={userEmail} className={userEmail === email ? 'online self' : 'online'}>
+                                    <span className="status-dot">🟢</span>
+                                    <span>{userEmail === email ? `${userEmail} (나)` : userEmail}</span>
+                                    <span className="status-text">접속중</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </aside>
+                )}
             </div>
         </div>
     )
