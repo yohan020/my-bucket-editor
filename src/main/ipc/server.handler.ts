@@ -71,6 +71,12 @@ export function registerServerHandlers(): void {
   ipcMain.handle('server:stop', async (_, port: number) => {
     const server = servers.get(port)
     if (server) {
+      // 모든 클라이언트에게 서버 종료 알림 브로드캐스트
+      server.io.emit('server:shutdown')
+      
+      // 클라이언트가 메시지를 받을 시간을 주고 종료
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       server.http.close(() => {
         console.log('⛔ 서버가 종료되었습니다.')
       })

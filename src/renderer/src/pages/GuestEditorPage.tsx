@@ -140,6 +140,13 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             }
         })
 
+        // 서버 종료 브로드캐스트 수신 (호스트가 서버를 종료할 때)
+        socket.on('server:shutdown', () => {
+            console.log('📢 서버 종료 알림 수신!')
+            alert('호스트가 서버를 종료했습니다.')
+            onDisconnectRef.current()
+        })
+
         socket.on('file:tree:response', (data) => {
             if (data.success) setFileTree(data.tree)
         })
