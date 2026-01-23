@@ -49,12 +49,6 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     const editorRef = useRef<any>(null)
     const awarenessRef = useRef<Awareness | null>(null)
     const tabBarRef = useRef<HTMLDivElement | null>(null)  // 탭 스크롤용
-    const onDisconnectRef = useRef(onDisconnect)  // 클로저 문제 해결용
-
-    // onDisconnect 콜백 업데이트
-    useEffect(() => {
-        onDisconnectRef.current = onDisconnect
-    }, [onDisconnect])
 
     // 바인딩 설정 함수 (EditorPage와 동일한 패턴)
     const setupBinding = useCallback(() => {
@@ -127,24 +121,22 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             console.error('❌ Socket.io 연결 에러:', error.message)
         })
 
-        socket.on('disconnect', (reason) => {
-            console.log('🔌 Socket 연결 끊김, 이유:', reason)
+        socket.on('disconnect', () => {
             setIsConnected(false)
-
-            // 서버 측에서 연결을 끊은 경우에만 자동 나가기
-            if (reason === 'io server disconnect' ||
-                reason === 'transport close' ||
-                reason === 'ping timeout') {
-                alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했거나 네트워크 문제가 발생했습니다.')
-                onDisconnectRef.current()  // ref를 통해 호출
-            }
         })
 
         // 서버 종료 브로드캐스트 수신 (호스트가 서버를 종료할 때)
         socket.on('server:shutdown', () => {
             console.log('📢 서버 종료 알림 수신!')
-            alert('호스트가 서버를 종료했습니다.')
-            onDisconnectRef.current()
+
+            // 현재 편집 중인 파일 자동 저장
+            if (currentFileRef.current) {
+                console.log('💾 자동 저장 중:', currentFileRef.current)
+                socket.emit('file:write', { filePath: currentFileRef.current })
+            }
+
+            alert('호스트가 서버를 종료했습니다. 작업 내용이 저장되었습니다.')
+            onDisconnect()
         })
 
         socket.on('file:tree:response', (data) => {
