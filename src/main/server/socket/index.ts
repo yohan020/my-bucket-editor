@@ -141,6 +141,13 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
             socket.emit('users:online', Array.from(connectedUsers.values()))
         })
 
+        // 승인된 유저 목록 요청 (Guest용)
+        socket.on('users:approved', async (port: number) => {
+            const { loadApprovedUsers } = await import('../../utils/userStore')
+            const users = await loadApprovedUsers(port)
+            socket.emit('users:approved', users.map(u => ({ email: u.email })))
+        })
+
         socket.on('disconnect', () => {
             console.log('🔌 Guest 연결 끊김:', socket.id)
 
