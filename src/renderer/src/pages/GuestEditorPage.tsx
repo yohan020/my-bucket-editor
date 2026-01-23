@@ -119,9 +119,17 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
 
         socket.on('connect_error', (error) => {
             console.error('❌ Socket.io 연결 에러:', error.message)
+            // 연결 에러 시 자동 나가기
+            alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했을 수 있습니다.')
+            onDisconnect()
         })
 
-        socket.on('disconnect', () => setIsConnected(false))
+        socket.on('disconnect', () => {
+            setIsConnected(false)
+            // 서버 종료 시 자동 나가기
+            alert('서버와의 연결이 끊겼습니다.')
+            onDisconnect()
+        })
 
         socket.on('file:tree:response', (data) => {
             if (data.success) setFileTree(data.tree)
@@ -303,7 +311,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                     className="toggle-panel-btn"
                     onClick={() => setShowUserPanel(!showUserPanel)}
                 >
-                    👥 {onlineUsers.length + 1}
+                    👥 {onlineUsers.length}
                 </button>
                 <button onClick={onDisconnect}>연결 해제</button>
             </header>
