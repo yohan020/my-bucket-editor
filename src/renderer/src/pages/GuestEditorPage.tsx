@@ -40,6 +40,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     // 유저 패널 상태
     const [showUserPanel, setShowUserPanel] = useState(false)
     const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+    const [approvedUsers, setApprovedUsers] = useState<{ email: string }[]>([])
 
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
@@ -132,8 +133,16 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             setOnlineUsers(emails)
         })
 
-        // 접속 시 온라인 유저 목록 요청
+        // 승인된 유저 목록 수신
+        socket.on('users:approved', (users: { email: string }[]) => {
+            console.log('👥 Guest 승인된 유저 목록:', users)
+            setApprovedUsers(users)
+        })
+
+        // 접속 시 온라인/승인된 유저 목록 요청
         socket.emit('users:online')
+        const port = parseInt(address.split(':')[1] || '3000')
+        socket.emit('users:approved', port)
 
         socket.on('file:read:response', (data) => {
             if (data.success && data.yjsState) {
@@ -362,20 +371,32 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                             <button onClick={() => setShowUserPanel(false)}>✕</button>
                         </div>
                         <ul className="user-list">
-                            {/* Host는 항상 온라인 */}
-                            <li className="online">
-                                <span className="status-dot">🟢</span>
+                            {/* Host - 실제 접속 상태 표시 */}
+                            <li className={onlineUsers.includes('Host') ? 'online' : 'offline'}>
+                                <span className="status-dot">{onlineUsers.includes('Host') ? '🟢' : '⚫'}</span>
                                 <span>Host</span>
-                                <span className="status-text">접속중</span>
+                                <span className="status-text">{onlineUsers.includes('Host') ? '접속중' : '오프라인'}</span>
                             </li>
-                            {/* 다른 온라인 유저들 */}
-                            {onlineUsers.map(userEmail => (
-                                <li key={userEmail} className={userEmail === email ? 'online self' : 'online'}>
-                                    <span className="status-dot">🟢</span>
-                                    <span>{userEmail === email ? `${userEmail} (나)` : userEmail}</span>
-                                    <span className="status-text">접속중</span>
-                                </li>
-                            ))}
+                            {/* 승인된 유저들 - 온라인/오프라인 상태 표시 */}
+                            {approvedUsers
+                                .sort((a, b) => {
+                                    const aOnline = onlineUsers.includes(a.email)
+                                    const bOnline = onlineUsers.includes(b.email)
+                                    if (aOnline && !bOnline) return -1
+                                    if (!aOnline && bOnline) return 1
+                                    return 0
+                                })
+                                .map(user => {
+                                    const isOnline = onlineUsers.includes(user.email)
+                                    const isSelf = user.email === email
+                                    return (
+                                        <li key={user.email} className={isOnline ? 'online' : 'offline'}>
+                                            <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
+                                            <span>{isSelf ? `${user.email} (나)` : user.email}</span>
+                                            <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
+                                        </li>
+                                    )
+                                })}
                         </ul>
                     </aside>
                 )}
