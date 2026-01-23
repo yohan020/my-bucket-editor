@@ -128,7 +128,14 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         // 서버 종료 브로드캐스트 수신 (호스트가 서버를 종료할 때)
         socket.on('server:shutdown', () => {
             console.log('📢 서버 종료 알림 수신!')
-            alert('호스트가 서버를 종료했습니다.')
+
+            // 현재 편집 중인 파일 자동 저장
+            if (currentFileRef.current) {
+                console.log('💾 자동 저장 중:', currentFileRef.current)
+                socket.emit('file:write', { filePath: currentFileRef.current })
+            }
+
+            alert('호스트가 서버를 종료했습니다. 작업 내용이 저장되었습니다.')
             onDisconnect()
         })
 
