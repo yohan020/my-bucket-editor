@@ -119,16 +119,28 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
 
         socket.on('connect_error', (error) => {
             console.error('❌ Socket.io 연결 에러:', error.message)
-            // 연결 에러 시 자동 나가기
-            alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했을 수 있습니다.')
-            onDisconnect()
+            // 초기 연결 실패가 아닌 경우에만 (이미 연결된 적이 있는 경우)
+            if (isConnected) {
+                alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했을 수 있습니다.')
+                onDisconnect()
+            }
         })
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', (reason) => {
+            console.log('🔌 Socket 연결 끊김, 이유:', reason)
             setIsConnected(false)
-            // 서버 종료 시 자동 나가기
-            alert('서버와의 연결이 끊겼습니다.')
-            onDisconnect()
+
+            // 서버 측에서 연결을 끊은 경우에만 자동 나가기
+            // 'io server disconnect' = 서버가 socket.disconnect() 호출
+            // 'transport close' = 서버 종료, 네트워크 끊김
+            // 'ping timeout' = 서버 응답 없음
+            if (reason === 'io server disconnect' ||
+                reason === 'transport close' ||
+                reason === 'ping timeout') {
+                alert('서버와의 연결이 끊겼습니다. 호스트가 서버를 종료했거나 네트워크 문제가 발생했습니다.')
+                onDisconnect()
+            }
+            // 'io client disconnect' = 클라이언트가 disconnect() 호출 (정상 종료)
         })
 
         socket.on('file:tree:response', (data) => {
