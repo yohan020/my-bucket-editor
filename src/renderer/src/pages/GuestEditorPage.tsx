@@ -1,5 +1,6 @@
 // [Guest 에디터] Host 서버에 연결하여 실시간 코드 편집
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { io, Socket } from 'socket.io-client'
 import Editor from '@monaco-editor/react'
 import FileTree from '../components/FileTree'
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
+    const { t } = useTranslation()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
@@ -138,7 +140,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 socket.emit('file:write', { filePath: currentFileRef.current })
             }
 
-            alert('호스트가 서버를 종료했습니다. 작업 내용이 저장되었습니다.')
+            alert(t('guest.serverShutdownWithSave'))
             onDisconnect()
         })
 
@@ -298,15 +300,15 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     if (isLoading) {
         return (
             <div className="guest-editor loading-screen">
-                <div>🔄 연결 중... ({address})</div>
+                <div>🔄 {t('guest.connecting')} ({address})</div>
                 <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#888' }}>
-                    연결 상태: {isConnected ? '🟢 연결됨' : '🔴 연결 대기 중'}
+                    {t('guest.connectionStatus')}: {isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('guest.waitingConnection')}`}
                 </div>
                 <button
                     style={{ marginTop: '20px', padding: '10px 20px' }}
                     onClick={onDisconnect}
                 >
-                    ← 돌아가기
+                    ← {t('common.back')}
                 </button>
             </div>
         )
@@ -316,8 +318,8 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         <div className="guest-editor">
             <header className="editor-header">
                 <span>📝 Guest Editor</span>
-                <span className="current-file">{currentFile || '파일을 선택하세요'}</span>
-                <span>{isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}</span>
+                <span className="current-file">{currentFile || t('editor.selectFile')}</span>
+                <span>{isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('editor.disconnected')}`}</span>
                 {/* 유저 패널 토글 버튼 */}
                 <button
                     className="toggle-panel-btn"
@@ -325,11 +327,11 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 >
                     👥 {onlineUsers.length}
                 </button>
-                <button onClick={onDisconnect}>연결 해제</button>
+                <button className="back-btn" onClick={onDisconnect}>{t('editor.disconnect')}</button>
             </header>
             <div className="editor-main">
                 <aside className="file-tree">
-                    <div className="sidebar-header">📁 파일 탐색기</div>
+                    <div className="sidebar-header">{t('editor.fileExplorer')}</div>
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">
@@ -387,7 +389,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 {showUserPanel && (
                     <aside className="right-panel">
                         <div className="panel-header">
-                            <span>👥 접속자</span>
+                            <span>👥 {t('editor.users')}</span>
                             <button onClick={() => setShowUserPanel(false)}>✕</button>
                         </div>
                         <ul className="user-list">
@@ -395,7 +397,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                             <li className={onlineUsers.includes('Host') ? 'online' : 'offline'}>
                                 <span className="status-dot">{onlineUsers.includes('Host') ? '🟢' : '⚫'}</span>
                                 <span>Host</span>
-                                <span className="status-text">{onlineUsers.includes('Host') ? '접속중' : '오프라인'}</span>
+                                <span className="status-text">{onlineUsers.includes('Host') ? t('editor.online') : t('editor.offline')}</span>
                             </li>
                             {/* 승인된 유저들 - 온라인/오프라인 상태 표시 */}
                             {approvedUsers
@@ -413,7 +415,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                                         <li key={user.email} className={isOnline ? 'online' : 'offline'}>
                                             <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
                                             <span>{isSelf ? `${user.email} (나)` : user.email}</span>
-                                            <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
+                                            <span className="status-text">{isOnline ? t('editor.online') : t('editor.offline')}</span>
                                         </li>
                                     )
                                 })}

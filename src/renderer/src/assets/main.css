@@ -1143,3 +1143,41 @@ button:disabled {
 .tree-item:hover {
   background: rgba(255, 255, 255, 0.05);
 }
+
+/* --- 언어 선택기 (Language Selector) --- */
+.language-selector {
+  background: #3c3c3c;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.language-selector:hover {
+  background: #4a4a4a;
+  border-color: #666;
+}
+
+.language-selector:focus {
+  border-color: #0e639c;
+}
+
+.language-selector option {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+/* 언어 선택기 wrapper - 우측 상단 고정 */
+.language-selector-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+/* 모드 선택 페이지에서 사용 */
+.mode-select-container {
+  position: relative;
+}

@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "취소",
+    "create": "생성",
+    "delete": "삭제",
+    "save": "저장",
+    "close": "닫기",
+    "confirm": "확인",
+    "back": "돌아가기",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "settings": "설정",
+    "language": "언어"
+  },
+  "modeSelect": {
+    "title": "My Bucket Editor",
+    "selectMode": "모드를 선택하세요",
+    "host": "Host",
+    "hostDesc": "서버를 실행하고 다른 사람을 초대합니다",
+    "guest": "Guest",
+    "guestDesc": "다른 사람의 서버에 접속합니다"
+  },
+  "dashboard": {
+    "title": "프로젝트 대시보드",
+    "createProject": "새 프로젝트",
+    "deleteProject": "프로젝트 삭제",
+    "startServer": "서버 시작",
+    "stopServer": "서버 종료",
+    "openEditor": "에디터 열기",
+    "manageUsers": "유저 관리",
+    "noProjects": "등록된 프로젝트가 없습니다.",
+    "serverRunning": "서버 실행 중",
+    "serverStopped": "서버 종료됨",
+    "port": "포트",
+    "path": "경로"
+  },
+  "createProject": {
+    "title": "새 프로젝트 생성",
+    "projectName": "프로젝트 이름",
+    "projectPath": "경로",
+    "selectFolder": "선택"
+  },
+  "editor": {
+    "fileExplorer": "📁 파일 탐색기",
+    "selectFile": "파일을 선택하세요",
+    "connected": "연결됨",
+    "disconnected": "연결 끊김",
+    "users": "접속자",
+    "online": "접속중",
+    "offline": "오프라인",
+    "disconnect": "연결 해제",
+    "autoSaved": "작업 내용이 저장되었습니다."
+  },
+  "guest": {
+    "title": "Guest 접속",
+    "serverAddress": "서버 주소",
+    "email": "이메일",
+    "password": "비밀번호",
+    "connect": "접속하기",
+    "connecting": "연결 중...",
+    "connectionStatus": "연결 상태",
+    "waitingConnection": "연결 대기 중",
+    "serverShutdown": "호스트가 서버를 종료했습니다.",
+    "serverShutdownWithSave": "호스트가 서버를 종료했습니다. 작업 내용이 저장되었습니다."
+  },
+  "userManage": {
+    "title": "유저 관리",
+    "approvedUsers": "승인된 유저",
+    "pendingUsers": "승인 대기 중",
+    "noApprovedUsers": "승인된 유저가 없습니다.",
+    "noPendingUsers": "대기 중인 유저가 없습니다.",
+    "approve": "승인",
+    "reject": "거부"
+  },
+  "login": {
+    "title": "로그인",
+    "guestLogin": "Guest 로그인"
+  },
+  "errors": {
+    "connectionFailed": "연결에 실패했습니다.",
+    "invalidCredentials": "아이디 또는 비밀번호가 틀렸습니다.",
+    "serverError": "서버 오류가 발생했습니다.",
+    "networkError": "네트워크 오류가 발생했습니다."
+  },
+  "menu": {
+    "settings": "설정 변경",
+    "rename": "이름 변경",
+    "openFolder": "폴더 열기",
+    "deleteProject": "프로젝트 삭제"
+  }
+}

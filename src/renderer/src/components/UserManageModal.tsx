@@ -1,5 +1,6 @@
 // [유저 관리 모달] 승인된 유저 목록 + 대기 중인 유저 목록 (가로 레이아웃)
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ApprovedUser {
     email: string
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function UserManageModal({ port, isOpen, onClose }: Props) {
+    const { t } = useTranslation()
     const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([])
     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
 
@@ -36,7 +38,7 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
     }
 
     const handleRemove = async (email: string) => {
-        if (confirm(`${email} 유저를 삭제하시겠습니까?`)) {
+        if (confirm(`${t('common.delete')} ${email}?`)) {
             await window.api.removeApprovedUser(port, email)
             loadUsers()
         }
@@ -58,15 +60,15 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content user-manage-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>👥 유저 관리 (포트: {port})</h3>
+                    <h3>👥 {t('userManage.title')} ({t('dashboard.port')}: {port})</h3>
                     <button onClick={onClose}>✕</button>
                 </div>
                 <div className="modal-body user-panels">
                     {/* 왼쪽: 승인된 유저 */}
                     <div className="user-panel approved-panel">
-                        <h4>📋 승인된 유저</h4>
+                        <h4>📋 {t('userManage.approvedUsers')}</h4>
                         {approvedUsers.length === 0 ? (
-                            <p className="empty-message">승인된 유저가 없습니다.</p>
+                            <p className="empty-message">{t('userManage.noApprovedUsers')}</p>
                         ) : (
                             <ul className="user-list">
                                 {approvedUsers.map(user => (
@@ -86,9 +88,9 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
 
                     {/* 오른쪽: 대기 중인 유저 */}
                     <div className="user-panel pending-panel">
-                        <h4>⏳ 대기 중인 유저</h4>
+                        <h4>⏳ {t('userManage.pendingUsers')}</h4>
                         {pendingUsers.length === 0 ? (
-                            <p className="empty-message">대기 중인 유저가 없습니다.</p>
+                            <p className="empty-message">{t('userManage.noPendingUsers')}</p>
                         ) : (
                             <ul className="user-list">
                                 {pendingUsers.map(user => (
@@ -99,13 +101,13 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
                                                 className="approve-btn"
                                                 onClick={() => handleApprove(user.email)}
                                             >
-                                                ✅ 승인
+                                                ✅ {t('userManage.approve')}
                                             </button>
                                             <button
                                                 className="reject-btn"
                                                 onClick={() => handleReject(user.email)}
                                             >
-                                                ❌ 거절
+                                                ❌ {t('userManage.reject')}
                                             </button>
                                         </div>
                                     </li>
