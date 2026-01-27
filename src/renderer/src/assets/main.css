@@ -138,6 +138,92 @@ input:focus {
   gap: 15px;
 }
 
+/* 터널 버튼 */
+.tunnel-btn {
+  background-color: #555;
+  color: #ddd;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tunnel-btn:hover {
+  background-color: #666;
+  color: white;
+}
+
+.tunnel-btn.active {
+  background-color: #0e639c;
+  /* Blue */
+  color: white;
+}
+
+/* 터널 정보 영역 (URL 표시) */
+.item-actions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.tunnel-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #252526;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #3e3e42;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tunnel-label {
+  color: #aaa;
+  font-weight: 500;
+}
+
+.tunnel-url {
+  color: #4ec9b0;
+  text-decoration: none;
+  font-family: 'Consolas', monospace;
+}
+
+.tunnel-url:hover {
+  text-decoration: underline;
+}
+
+.copy-btn {
+  background: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.copy-btn:hover {
+  background: #444;
+  color: white;
+  border-color: #888;
+}
+
 .list-item {
   background-color: #252526;
   border: 1px solid #333;

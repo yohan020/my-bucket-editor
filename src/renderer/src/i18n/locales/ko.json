@@ -87,5 +87,11 @@
     "rename": "이름 변경",
     "openFolder": "폴더 열기",
     "deleteProject": "프로젝트 삭제"
+  },
+  "tunnel": {
+    "enableExternal": "외부 공유",
+    "disableExternal": "외부 공유 중지",
+    "copied": "복사됨!",
+    "connecting": "연결 중..."
   }
 }

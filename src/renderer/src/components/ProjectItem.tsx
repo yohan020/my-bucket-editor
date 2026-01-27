@@ -17,6 +17,8 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     const { t } = useTranslation()
     const [menuOpen, setMenuOpen] = useState(false)
     const [userModalOpen, setUserModalOpen] = useState(false)
+    const [tunnelUrl, setTunnelUrl] = useState<string | null>(null)
+    const [isTunnelLoading, setIsTunnelLoading] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
 
     // 외부 클릭 시 메뉴 닫기
@@ -31,11 +33,49 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [menuOpen])
 
+    // 서버가 꺼지면 터널도 초기화
+    useEffect(() => {
+        if (!isActive) {
+            setTunnelUrl(null)
+        }
+    }, [isActive])
+
     const handleMenuAction = (action: string) => {
         if (action === 'delete') {
             onDeleteProject()
         }
         setMenuOpen(false)
+    }
+
+    // 터널 토글 핸들러
+    const handleToggleTunnel = async () => {
+        if (!isActive) {
+            alert(t('dashboard.startServer') + '!')
+            return
+        }
+
+        if (tunnelUrl) {
+            setIsTunnelLoading(true)
+            await window.api.stopTunnel()
+            setTunnelUrl(null)
+            setIsTunnelLoading(false)
+        } else {
+            setIsTunnelLoading(true)
+            const result = await window.api.startTunnel(project.port)
+            if (result.success && result.url) {
+                setTunnelUrl(result.url)
+            } else {
+                alert(result.error || t('errors.networkError'))
+            }
+            setIsTunnelLoading(false)
+        }
+    }
+
+    const handleCopyUrl = () => {
+        if (tunnelUrl) {
+            navigator.clipboard.writeText(tunnelUrl)
+            alert(t('tunnel.copied'))
+        }
     }
 
     return (
@@ -49,21 +89,43 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                 <span className="item-meta">{t('dashboard.port')}: {project.port} | Last used: {project.lastUsed}</span>
             </div>
 
-            <div className="item-actions">
-                <button
-                    className="user-manage-btn"
-                    onClick={() => setUserModalOpen(true)}
-                >
-                    👥 {t('dashboard.manageUsers')}
-                </button>
-                <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
-                    {isActive ? `⏹ ${t('dashboard.stopServer')}` : `▶ ${t('dashboard.startServer')}`}
-                </button>
+            <div className="item-actions-wrapper">
+                <div className="item-actions">
+                    <button
+                        className="user-manage-btn"
+                        onClick={() => setUserModalOpen(true)}
+                    >
+                        👥 {t('dashboard.manageUsers')}
+                    </button>
+                    <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
+                        {isActive ? `⏹ ${t('dashboard.stopServer')}` : `▶ ${t('dashboard.startServer')}`}
+                    </button>
 
-                <div className="menu-wrapper" ref={menuRef}>
-                    <button className="kebab-btn" onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen) }}>⋮</button>
-                    <KebabMenu isOpen={menuOpen} onAction={handleMenuAction} />
+                    {/* 외부 공유 버튼 (서버 켜져있을 때만 노출) */}
+                    {isActive && (
+                        <button
+                            className={`tunnel-btn ${tunnelUrl ? 'active' : ''}`}
+                            onClick={handleToggleTunnel}
+                            disabled={isTunnelLoading}
+                        >
+                            {isTunnelLoading ? '⏳' : '🌐'} {tunnelUrl ? t('tunnel.disableExternal') : t('tunnel.enableExternal')}
+                        </button>
+                    )}
+
+                    <div className="menu-wrapper" ref={menuRef}>
+                        <button className="kebab-btn" onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen) }}>⋮</button>
+                        <KebabMenu isOpen={menuOpen} onAction={handleMenuAction} />
+                    </div>
                 </div>
+
+                {/* 터널 URL 표시 영역 */}
+                {tunnelUrl && (
+                    <div className="tunnel-info">
+                        <span className="tunnel-label">🔗 External:</span>
+                        <a href={tunnelUrl} target="_blank" rel="noreferrer" className="tunnel-url">{tunnelUrl}</a>
+                        <button className="copy-btn" onClick={handleCopyUrl}>📋 Copy</button>
+                    </div>
+                )}
             </div>
 
             {/* 유저 관리 모달 */}

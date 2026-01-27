@@ -5,6 +5,7 @@ import { registerServerHandlers } from "./server.handler";
 import { registerProjectHandlers } from "./project.handler";
 import { registerFileHandlers } from "./file.handler";
 import { registerWindowHandlers } from "./window.handler";
+import { registerTunnelHandlers } from "./tunnel.handler";
 
 export function registerAllHandlers(): void {
     registerDialogHandlers()
@@ -13,4 +14,5 @@ export function registerAllHandlers(): void {
     registerProjectHandlers()
     registerFileHandlers()
     registerWindowHandlers()
+    registerTunnelHandlers()
 }

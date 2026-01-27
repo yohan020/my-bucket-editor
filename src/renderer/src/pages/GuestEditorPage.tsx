@@ -111,7 +111,14 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     useEffect(() => {
         console.log('🔄 Socket.io 연결 시도:', `http://${address}`)
         const socket = io(`http://${address}`, {
-            auth: { token, email }  // 이메일도 함께 전달
+            auth: { token, email },  // 이메일도 함께 전달
+            transportOptions: {
+                polling: {
+                    extraHeaders: {
+                        'Bypass-Tunnel-Reminder': 'true'
+                    }
+                }
+            }
         })
         socketRef.current = socket
 

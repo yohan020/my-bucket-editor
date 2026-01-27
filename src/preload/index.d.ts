@@ -18,6 +18,9 @@ interface ApiInterface {
   rejectUser: (port: number, email: string) => Promise<any>
   focusWindow: () => Promise<boolean>
   resetFocus: () => Promise<boolean>
+  startTunnel: (port: number) => Promise<{ success: boolean; url?: string; error?: string }>
+  stopTunnel: () => Promise<{ success: boolean; error?: string }>
+  getTunnelUrl: () => Promise<string | null>
 }
 
 declare global {

@@ -21,7 +21,9 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
         setStatus('loading')
         try {
             // 간단한 연결 테스트 (서버에 GET 요청)
-            const res = await fetch(`http://${address}`)
+            const res = await fetch(`http://${address}`, {
+                headers: { 'Bypass-Tunnel-Reminder': 'true' }
+            })
             if (res.ok) {
                 setStep('login')
                 setStatus('idle')
@@ -40,7 +42,10 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
         try {
             const res = await fetch(`http://${address}/api/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true'
+                },
                 body: JSON.stringify({ email, password })
             })
             const data = await res.json()

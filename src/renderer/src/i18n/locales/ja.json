@@ -87,5 +87,11 @@
     "rename": "名前変更",
     "openFolder": "フォルダを開く",
     "deleteProject": "プロジェクト削除"
+  },
+  "tunnel": {
+    "enableExternal": "外部共有",
+    "disableExternal": "共有停止",
+    "copied": "コピー完了!",
+    "connecting": "接続中..."
   }
 }

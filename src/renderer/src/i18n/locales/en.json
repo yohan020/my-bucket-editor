@@ -87,5 +87,11 @@
     "rename": "Rename",
     "openFolder": "Open Folder",
     "deleteProject": "Delete Project"
+  },
+  "tunnel": {
+    "enableExternal": "Share Externally",
+    "disableExternal": "Stop Sharing",
+    "copied": "Copied!",
+    "connecting": "Connecting..."
   }
 }
