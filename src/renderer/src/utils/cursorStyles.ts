@@ -5,10 +5,7 @@ let styleElement: HTMLStyleElement | null = null
 
 /**
  * Awareness 상태로부터 동적 커서 스타일 CSS를 생성하고 주입
-<<<<<<< HEAD
  * y-monaco는 yRemoteSelectionHead-{clientID} 형식의 클래스를 사용
-=======
->>>>>>> 90c295c0de34b60b1e7111656a115529f48338e3
  */
 export function updateCursorStyles(awareness: Awareness): void {
     const states = awareness.getStates()
@@ -18,7 +15,6 @@ export function updateCursorStyles(awareness: Awareness): void {
     states.forEach((state, clientId) => {
         const user = state.user as { name?: string; color?: string } | undefined
         if (user && user.name && user.color && clientId !== awareness.clientID) {
-<<<<<<< HEAD
             // 각 사용자별 CSS 규칙 생성 (y-monaco 클래스 형식)
             css += `
                 .yRemoteSelectionHead-${clientId} {
@@ -42,18 +38,6 @@ export function updateCursorStyles(awareness: Awareness): void {
                     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
                 }
                 .yRemoteSelection-${clientId} {
-=======
-            // 각 사용자별 CSS 규칙 생성
-            css += `
-                .yRemoteSelectionHead[data-client-id="${clientId}"] {
-                    border-color: ${user.color} !important;
-                }
-                .yRemoteSelectionHead[data-client-id="${clientId}"]::after {
-                    content: "${user.name}";
-                    background: ${user.color} !important;
-                }
-                .yRemoteSelection[data-client-id="${clientId}"] {
->>>>>>> 90c295c0de34b60b1e7111656a115529f48338e3
                     background-color: ${user.color}33 !important;
                 }
             `
@@ -78,7 +62,3 @@ export function cleanupCursorStyles(): void {
         styleElement = null
     }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 90c295c0de34b60b1e7111656a115529f48338e3
