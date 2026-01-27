@@ -54,14 +54,16 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             return
         }
 
+        const api = (window as any).api
+
         if (tunnelUrl) {
             setIsTunnelLoading(true)
-            await window.api.stopTunnel()
+            await api.stopTunnel()
             setTunnelUrl(null)
             setIsTunnelLoading(false)
         } else {
             setIsTunnelLoading(true)
-            const result = await window.api.startTunnel(project.port)
+            const result = await api.startTunnel(project.port)
             if (result.success && result.url) {
                 setTunnelUrl(result.url)
             } else {
@@ -71,9 +73,9 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
         }
     }
 
-    const handleCopyUrl = () => {
+    const handleCopyUrl = async () => {
         if (tunnelUrl) {
-            navigator.clipboard.writeText(tunnelUrl)
+            await (window as any).api.copyToClipboard(tunnelUrl)
             alert(t('tunnel.copied'))
         }
     }

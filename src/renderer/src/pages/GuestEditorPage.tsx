@@ -109,8 +109,13 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
 
     // Socket.io 연결
     useEffect(() => {
-        console.log('🔄 Socket.io 연결 시도:', `http://${address}`)
-        const socket = io(`http://${address}`, {
+        let targetAddress = address
+        if (!address.startsWith('http://') && !address.startsWith('https://')) {
+            targetAddress = `http://${address}`
+        }
+
+        console.log('🔄 Socket.io 연결 시도:', targetAddress)
+        const socket = io(targetAddress, {
             auth: { token, email },  // 이메일도 함께 전달
             transportOptions: {
                 polling: {
