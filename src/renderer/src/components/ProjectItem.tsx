@@ -37,6 +37,11 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     useEffect(() => {
         if (!isActive) {
             setTunnelUrl(null)
+        } else {
+            // 서버가 켜져있으면 기존 터널 확인
+            (window as any).api.getTunnelUrl().then((url: string | null) => {
+                if (url) setTunnelUrl(url)
+            })
         }
     }, [isActive])
 
