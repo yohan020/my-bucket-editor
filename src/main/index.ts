@@ -34,6 +34,7 @@ app.whenReady().then(() => {
   })
 })
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await import('./tunnel').then(m => m.cleanupTunnels())
   if (process.platform !== 'darwin') app.quit()
 })
