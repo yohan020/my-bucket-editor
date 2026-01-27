@@ -37,7 +37,10 @@ const api = {
   // === 터널(ngrok) 관련 API ===
   startTunnel: (port: number): Promise<{ success: boolean; url?: string; error?: string }> => ipcRenderer.invoke('tunnel:start', port),
   stopTunnel: (): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('tunnel:stop'),
-  getTunnelUrl: (): Promise<string | null> => ipcRenderer.invoke('tunnel:getUrl')
+  getTunnelUrl: (): Promise<string | null> => ipcRenderer.invoke('tunnel:getUrl'),
+
+  // === 클립보드 API ===
+  copyToClipboard: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:write', text)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

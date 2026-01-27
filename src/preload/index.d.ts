@@ -21,6 +21,7 @@ interface ApiInterface {
   startTunnel: (port: number) => Promise<{ success: boolean; url?: string; error?: string }>
   stopTunnel: () => Promise<{ success: boolean; error?: string }>
   getTunnelUrl: () => Promise<string | null>
+  copyToClipboard: (text: string) => Promise<void>
 }
 
 declare global {

@@ -20,8 +20,14 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const handleConnect = async () => {
         setStatus('loading')
         try {
+            // 주소 노멀라이제이션 (http/https 없으면 http:// 추가)
+            let targetAddress = address
+            if (!address.startsWith('http://') && !address.startsWith('https://')) {
+                targetAddress = `http://${address}`
+            }
+
             // 간단한 연결 테스트 (서버에 GET 요청)
-            const res = await fetch(`http://${address}`, {
+            const res = await fetch(targetAddress, {
                 headers: { 'Bypass-Tunnel-Reminder': 'true' }
             })
             if (res.ok) {
@@ -40,7 +46,12 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const handleLogin = async () => { // 로그인
         setStatus('loading')
         try {
-            const res = await fetch(`http://${address}/api/login`, {
+            let targetAddress = address
+            if (!address.startsWith('http://') && !address.startsWith('https://')) {
+                targetAddress = `http://${address}`
+            }
+
+            const res = await fetch(`${targetAddress}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
