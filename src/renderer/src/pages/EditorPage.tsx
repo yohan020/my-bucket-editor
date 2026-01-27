@@ -8,6 +8,7 @@ import Editor from '@monaco-editor/react'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 import { getFileIconUrl } from '../utils/fileIcons'
+import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
 
 const editorOptions = {
     automaticLayout: true,
@@ -70,7 +71,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             awareness  // ★ 이게 핵심!
         )
 
-        // Awareness 변경을 서버로 전송
+        // Awareness 변경을 서버로 전송 + 커서 스타일 업데이트
         awareness.on('update', ({ added, updated, removed }) => {
             const changedClients = [...added, ...updated, ...removed]
             if (changedClients.length > 0) {
@@ -79,6 +80,8 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                     filePath: currentFileRef.current,
                     update: Array.from(update)
                 })
+                // 커서 스타일 동적 업데이트
+                updateCursorStyles(awareness)
             }
         })
     }, [])
@@ -95,6 +98,10 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         window.api.getApprovedUsers(port).then(users => {
             setApprovedUsers(users)
         })
+
+        return () => {
+            cleanupCursorStyles()  // 커서 스타일 정리
+        }
     }, [projectPath])
 
     // Socket.io 연결
