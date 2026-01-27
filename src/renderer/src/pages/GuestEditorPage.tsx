@@ -8,6 +8,7 @@ import { MonacoBinding } from 'y-monaco'
 import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 import { getFileIconUrl } from '../utils/fileIcons'
+import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
 
 const editorOptions = {
     automaticLayout: true,
@@ -68,11 +69,11 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
         const awareness = new Awareness(yDoc)
         awarenessRef.current = awareness
 
-        // 사용자 정보 설정 (랜덤 색상)
+        // 사용자 정보 설정 (랜덤 색상 + 이메일)
         const colors = ['#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899']
         const randomColor = colors[Math.floor(Math.random() * colors.length)]
         awareness.setLocalStateField('user', {
-            name: 'Guest',
+            name: email,  // 이메일을 이름으로 사용
             color: randomColor
         })
 
@@ -86,7 +87,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
 
         console.log('🔗 Guest Yjs 바인딩 완료')
 
-        // Awareness 변경을 서버로 전송
+        // Awareness 변경을 서버로 전송 + 커서 스타일 업데이트
         awareness.on('update', ({ added, updated, removed }: { added: number[], updated: number[], removed: number[] }) => {
             const changedClients = [...added, ...updated, ...removed]
             if (changedClients.length > 0) {
@@ -95,6 +96,8 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                     filePath: currentFileRef.current,
                     update: Array.from(update)
                 })
+                // 커서 스타일 동적 업데이트
+                updateCursorStyles(awareness)
             }
         })
 
@@ -218,6 +221,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
             bindingRef.current?.destroy()
             yDocRef.current?.destroy()
             awarenessRef.current?.destroy()
+            cleanupCursorStyles()  // 커서 스타일 정리
         }
     }, [address, setupBinding])
 
