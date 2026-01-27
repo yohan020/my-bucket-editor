@@ -1,6 +1,5 @@
 // [인증 라우트] 게스트 로그인 API (/api/login) - 유저 인증 및 승인 요청 처리
 import { Router } from 'express'
-import { BrowserWindow } from 'electron'
 import { projectUsers } from '../index'
 import { User } from '../../types'
 import { generateToken } from '../utils/jwt'
@@ -41,11 +40,9 @@ export function createAuthRouter(port: number): Router {
         users.push(newUser)
         projectUsers.set(port, users);
 
-        // 호스트에게 승인 요청 왔다고 알려줌
-        const windows = BrowserWindow.getAllWindows()
-        if (windows.length > 0) {
-          windows[0].webContents.send('guest-request', {port, email})
-        }
+
+        // 기존 알림 코드 제거 - UserManageModal에서 대기 목록으로 대체됨
+
 
         return res.status(201).json({success: false, message: '📨 승인 요청을 보냈습니다. 호스트가 수락하면 다시 로그인하세요.'})
     })

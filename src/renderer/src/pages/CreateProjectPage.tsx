@@ -1,5 +1,6 @@
 // [프로젝트 생성 페이지] 새 프로젝트 이름과 경로를 입력받는 폼 화면
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Project } from '../types'
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function CreateProjectPage({ projectCount, onCreate, onCancel }: Props) {
+    const { t } = useTranslation()
     const [name, setName] = useState('')
     const [path, setPath] = useState('')
 
@@ -19,7 +21,7 @@ export default function CreateProjectPage({ projectCount, onCreate, onCancel }: 
 
     const handleCreate = () => {
         if (!path || !name) {
-            alert('이름과 경로를 모두 입력해주세요.')
+            alert(t('errors.serverError'))
             return
         }
 
@@ -32,30 +34,30 @@ export default function CreateProjectPage({ projectCount, onCreate, onCancel }: 
         }
 
         onCreate(newProject)
-        alert('프로젝트가 생성되었습니다!')
+        alert(`${t('common.create')} ✓`)
     }
 
     return (
         <div className="center-container">
             <div className="create-card">
-                <h1>새 프로젝트 생성</h1>
+                <h1>{t('createProject.title')}</h1>
 
                 <div className="input-group">
-                    <label>프로젝트 이름</label>
-                    <input type="text" placeholder="예: 팀 프로젝트 A" value={name} onChange={e => setName(e.target.value)} />
+                    <label>{t('createProject.projectName')}</label>
+                    <input type="text" placeholder="Project Name" value={name} onChange={e => setName(e.target.value)} />
                 </div>
 
                 <div className="input-group">
-                    <label>경로</label>
+                    <label>{t('createProject.projectPath')}</label>
                     <div className="path-select-row">
-                        <input type="text" className="path-display" readOnly value={path} placeholder="오른쪽 폴더 아이콘을 눌러 선택하세요" />
+                        <input type="text" className="path-display" readOnly value={path} placeholder={t('createProject.selectFolder')} />
                         <button className="folder-btn" onClick={handleSelectFolder}>📂</button>
                     </div>
                 </div>
 
                 <div className="bottom-btn-group">
-                    <button className="secondary-btn half-btn" onClick={onCancel}>취소</button>
-                    <button className="primary-btn half-btn" onClick={handleCreate}>생성</button>
+                    <button className="secondary-btn half-btn" onClick={onCancel}>{t('common.cancel')}</button>
+                    <button className="primary-btn half-btn" onClick={handleCreate}>{t('common.create')}</button>
                 </div>
             </div>
         </div>

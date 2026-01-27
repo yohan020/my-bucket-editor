@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "save": "Save",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "login": "Login",
+    "logout": "Logout",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "modeSelect": {
+    "title": "My Bucket Editor",
+    "selectMode": "Select a mode",
+    "host": "Host",
+    "hostDesc": "Start a server and invite others",
+    "guest": "Guest",
+    "guestDesc": "Connect to someone else's server"
+  },
+  "dashboard": {
+    "title": "Project Dashboard",
+    "createProject": "New Project",
+    "deleteProject": "Delete Project",
+    "startServer": "Start Server",
+    "stopServer": "Stop Server",
+    "openEditor": "Open Editor",
+    "manageUsers": "Manage Users",
+    "noProjects": "No projects registered.",
+    "serverRunning": "Server Running",
+    "serverStopped": "Server Stopped",
+    "port": "Port",
+    "path": "Path"
+  },
+  "createProject": {
+    "title": "Create New Project",
+    "projectName": "Project Name",
+    "projectPath": "Path",
+    "selectFolder": "Select"
+  },
+  "editor": {
+    "fileExplorer": "📁 File Explorer",
+    "selectFile": "Select a file",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "users": "Users",
+    "online": "Online",
+    "offline": "Offline",
+    "disconnect": "Disconnect",
+    "autoSaved": "Your work has been saved."
+  },
+  "guest": {
+    "title": "Guest Connect",
+    "serverAddress": "Server Address",
+    "email": "Email",
+    "password": "Password",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "connectionStatus": "Connection Status",
+    "waitingConnection": "Waiting for connection",
+    "serverShutdown": "The host has shut down the server.",
+    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved."
+  },
+  "userManage": {
+    "title": "User Management",
+    "approvedUsers": "Approved Users",
+    "pendingUsers": "Pending Approval",
+    "noApprovedUsers": "No approved users.",
+    "noPendingUsers": "No pending users.",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "login": {
+    "title": "Login",
+    "guestLogin": "Guest Login"
+  },
+  "errors": {
+    "connectionFailed": "Connection failed.",
+    "invalidCredentials": "Invalid email or password.",
+    "serverError": "Server error occurred.",
+    "networkError": "Network error occurred."
+  },
+  "menu": {
+    "settings": "Settings",
+    "rename": "Rename",
+    "openFolder": "Open Folder",
+    "deleteProject": "Delete Project"
+  }
+}

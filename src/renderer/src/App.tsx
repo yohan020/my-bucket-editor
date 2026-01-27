@@ -19,14 +19,18 @@ declare global {
       createProject: (project: Project) => Promise<boolean>
       startServer: (port: number, projectPath: string) => Promise<{ success: boolean; message: string }>
       stopServer: (port: number) => Promise<boolean>
-      approveUser: (port: number, email: string, allow: boolean) => Promise<{ success: boolean; message: string }>
       onGuestRequest: (callback: (data: { port: number; email: string }) => void) => () => void
       getFileTree: (dirPath: string) => Promise<any>
       readFile: (filePath: string) => Promise<any>
       writeFile: (filePath: string, content: string) => Promise<any>
       deleteProject: (projectId: number) => Promise<any>
       getApprovedUsers: (port: number) => Promise<any[]>
+      getPendingUsers: (port: number) => Promise<any[]>
       removeApprovedUser: (port: number, email: string) => Promise<any>
+      approveUser: (port: number, email: string) => Promise<any>
+      rejectUser: (port: number, email: string) => Promise<any>
+      focusWindow: () => Promise<boolean>
+      resetFocus: () => Promise<boolean>
     }
   }
 }
@@ -37,17 +41,10 @@ export default function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [guestAddress, setGuestAddress] = useState('')
   const [guestToken, setGuestToken] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
 
-  // useProjects 훅이 반환하는 '종합 선물 세트(객체)' 중에서
-  // 당장 필요한 '프로젝트 목록(projects)'과 '생성 기능(createProject)'만
-  // 쏙 골라서(구조 분해 할당) 변수로 가져옴 (나머지 기능은 무시)
-  // 1. 일단 useProject() 혹을 호출하여 모든 기능 만들어 놓음
-  // 2. 필요한 기능 만 챙김 (나머지는 둥둥 떠다니느 중)
-  // 3. 나머지는 청소부 (가비지 콜렉터) 가 청소함
-  // 추가 : 만약 다른곳에서 useProjects()의 일부를 골라서 사용한다면?
-  // -> 해당 사이클은 다시 한번 진행됨
-  // 이유 : 각 컴포넌트는 독립된 존재라 사이클이 각각 독립적으로 진행됨
-  const { projects, createProject } = useProjects()
+  // useProjects 훅에서 모든 필요한 상태와 함수를 가져옴
+  const { projects, activeProjectIds, createProject, toggleServer, deleteProject } = useProjects()
 
   const handleLogin = (name: string) => {
     setUsername(name)
@@ -77,9 +74,10 @@ export default function App() {
   if (view === "GUEST_CONNECT") {
     return (
       <GuestConnectPage
-        onConnect={(addr, token) => {
+        onConnect={(addr, token, email) => {
           setGuestAddress(addr)
-          setGuestToken(token) // 토큰 저장
+          setGuestToken(token)
+          setGuestEmail(email)
           setView('GUEST_EDITOR')
         }}
         onBack={() => setView('MODE_SELECT')}
@@ -91,7 +89,8 @@ export default function App() {
     return (
       <GuestEditorPage
         address={guestAddress}
-        token={guestToken} // 토큰 전달
+        token={guestToken}
+        email={guestEmail}
         onDisconnect={() => setView('MODE_SELECT')}
       />
     )
@@ -116,6 +115,7 @@ export default function App() {
       <EditorPage
         projectName={currentProject.name}
         projectPath={currentProject.path}
+        port={currentProject.port}
         onBack={() => setView('DASHBOARD')}
       />
     )
@@ -124,6 +124,10 @@ export default function App() {
   return (
     <DashboardPage
       username={username}
+      projects={projects}
+      activeProjectIds={activeProjectIds}
+      onToggleServer={toggleServer}
+      onDeleteProject={deleteProject}
       onCreateClick={() => setView('CREATE_PROJECT')}
       onOpenEditor={handleOpenEditor}
     />

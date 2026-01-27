@@ -9,7 +9,6 @@ const api = {
   createProject: (project: any): Promise<boolean> => ipcRenderer.invoke('project:create', project),
   startServer: (port: number, projectPath: string): Promise<any> => ipcRenderer.invoke('server:start', {port, projectPath}),
   stopServer: (port: number): Promise<boolean> => ipcRenderer.invoke('server:stop', port),
-  approveUser: (port: number, email: string, allow: boolean): Promise<any> => ipcRenderer.invoke('user:approve', {port, email, allow}),
   onGuestRequest: (callback: (data: { port: number, email: string }) => void) => {
     const handler = (_: Electron.IpcRendererEvent, data: { port: number, email: string }) => callback(data)
     ipcRenderer.on('guest-request', handler)
@@ -26,7 +25,14 @@ const api = {
 
   // === 유저 목록 관련 API ===
   getApprovedUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:list', port),
-  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email })
+  getPendingUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:pending:list', port),
+  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email }),
+  approveUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:approve', { port, email }),
+  rejectUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:reject', { port, email }),
+
+  // === 윈도우 포커스 API ===
+  focusWindow: (): Promise<boolean> => ipcRenderer.invoke('window:focus'),
+  resetFocus: (): Promise<boolean> => ipcRenderer.invoke('window:resetFocus')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

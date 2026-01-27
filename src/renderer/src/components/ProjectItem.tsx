@@ -1,5 +1,6 @@
 // [프로젝트 아이템] 개별 프로젝트의 정보와 액션 버튼을 표시하는 카드 컴포넌트
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Project } from '../types'
 import KebabMenu from './KebabMenu'
 import UserManageModal from './UserManageModal'
@@ -13,14 +14,26 @@ interface Props {
 }
 
 export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
+    const { t } = useTranslation()
     const [menuOpen, setMenuOpen] = useState(false)
     const [userModalOpen, setUserModalOpen] = useState(false)
+    const menuRef = useRef<HTMLDivElement>(null)
+
+    // 외부 클릭 시 메뉴 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setMenuOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [menuOpen])
 
     const handleMenuAction = (action: string) => {
-        if (action === '삭제') {
+        if (action === 'delete') {
             onDeleteProject()
-        } else {
-            alert(`'${project.name}' 프로젝트 - [${action}] 기능을 실행합니다.`)
         }
         setMenuOpen(false)
     }
@@ -33,7 +46,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                     <span className="status-badge">{isActive ? 'ONLINE' : 'OFFLINE'}</span>
                 </div>
                 <p className="item-path">{project.path}</p>
-                <span className="item-meta">Port: {project.port} | Last used: {project.lastUsed}</span>
+                <span className="item-meta">{t('dashboard.port')}: {project.port} | Last used: {project.lastUsed}</span>
             </div>
 
             <div className="item-actions">
@@ -41,13 +54,13 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                     className="user-manage-btn"
                     onClick={() => setUserModalOpen(true)}
                 >
-                    👥 유저 관리
+                    👥 {t('dashboard.manageUsers')}
                 </button>
                 <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
-                    {isActive ? '⏹ 서버 중지' : '▶ 서버 실행'}
+                    {isActive ? `⏹ ${t('dashboard.stopServer')}` : `▶ ${t('dashboard.startServer')}`}
                 </button>
 
-                <div className="menu-wrapper">
+                <div className="menu-wrapper" ref={menuRef}>
                     <button className="kebab-btn" onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen) }}>⋮</button>
                     <KebabMenu isOpen={menuOpen} onAction={handleMenuAction} />
                 </div>
