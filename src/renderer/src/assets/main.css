@@ -773,20 +773,7 @@ button:disabled {
   box-sizing: border-box;
 }
 
-/* 커서 위에 사용자 이름 표시 */
-.yRemoteSelectionHead::after {
-  content: attr(data-client-id);
-  position: absolute;
-  top: -16px;
-  left: -1px;
-  font-size: 10px;
-  background: #3b82f6;
-  color: white;
-  padding: 1px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-  pointer-events: none;
-}
+/* 커서 이름 표시 - 동적 스타일이 이를 오버라이드함 (cursorStyles.ts) */
 
 /* --- 우측 패널 (접속자 목록) --- */
 .toggle-panel-btn {
