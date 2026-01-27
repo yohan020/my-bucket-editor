@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FileNode } from '../types'
 import FileTree from '../components/FileTree'
 import { io, Socket } from 'socket.io-client'
@@ -25,9 +26,10 @@ interface Props {
 }
 
 export default function EditorPage({ projectName, projectPath, port, onBack }: Props) {
+    const { t } = useTranslation()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
-    const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
+    const [openTabs, setOpenTabs] = useState<string[]>([])
     const [language, setLanguage] = useState('plaintext')
 
     const [showUserPanel, setShowUserPanel] = useState(false)
@@ -286,7 +288,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         <div className="guest-editor">
             {/* 헤더 */}
             <header className="editor-header">
-                <button className="back-btn" onClick={onBack}>← 돌아가기</button>
+                <button className="back-btn" onClick={onBack}>← {t('common.back')}</button>
                 <h2>{projectName}</h2>
                 <span className="project-path">{projectPath}</span>
                 {/* 토글 버튼 */}
@@ -301,7 +303,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             <div className="editor-main">
                 {/* 사이드바 (파일 트리) */}
                 <aside className="file-tree">
-                    <div className="sidebar-header">📁 파일 탐색기</div>
+                    <div className="sidebar-header">{t('editor.fileExplorer')}</div>
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 {/* 에디터 영역 */}
@@ -362,14 +364,14 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                 {showUserPanel && (
                     <aside className="right-panel">
                         <div className="panel-header">
-                            <span>👥 접속자</span>
+                            <span>👥 {t('editor.users')}</span>
                             <button onClick={() => setShowUserPanel(false)}>✕</button>
                         </div>
                         <ul className="user-list">
                             <li className="online">
                                 <span className="status-dot">🟢</span>
                                 <span>Host</span>
-                                <span className="status-text">접속중</span>
+                                <span className="status-text">{t('editor.online')}</span>
                             </li>
                             {/* 온라인 유저 먼저 (접속 순서대로), 오프라인은 뒤로 */}
                             {[...approvedUsers]
@@ -390,7 +392,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                                         <li key={user.email} className={isOnline ? 'online' : 'offline'}>
                                             <span className="status-dot">{isOnline ? '🟢' : '⚫'}</span>
                                             <span>{user.email}</span>
-                                            <span className="status-text">{isOnline ? '접속중' : '오프라인'}</span>
+                                            <span className="status-text">{isOnline ? t('editor.online') : t('editor.offline')}</span>
                                         </li>
                                     )
                                 })}

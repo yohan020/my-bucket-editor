@@ -1,5 +1,6 @@
 // [Guest 연결 페이지] Host IP:Port 입력하여 연결
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
     onConnect: (address: string, token: string, email: string) => void
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function GuestConnectPage({ onConnect, onBack }: Props) {
+    const { t } = useTranslation()
     const [address, setAddress] = useState('')
     const [step, setStep] = useState<'address' | 'login'>('address')
     const [email, setEmail] = useState('')
@@ -25,11 +27,11 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                 setStatus('idle')
             } else {
                 setStatus('error')
-                setMessage('서버에 연결할 수 없습니다.')
+                setMessage(t('errors.connectionFailed'))
             }
         } catch (e) {
             setStatus('error')
-            setMessage('서버에 연결할 수 없습니다.')
+            setMessage(t('errors.connectionFailed'))
         }
     }
 
@@ -50,7 +52,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             }
         } catch (e) {
             setStatus('error')
-            setMessage('로그인 실패')
+            setMessage(t('errors.invalidCredentials'))
         }
     }
 
@@ -58,10 +60,10 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
         <div className="guest-connect-container">
             {step === 'address' ? (
                 <>
-                    <h1>👤 Guest로 참여</h1>
-                    <p>Host의 IP:Port를 입력하세요</p>
+                    <h1>👤 {t('modeSelect.guest')}</h1>
+                    <p>{t('guest.serverAddress')}</p>
                     <input
-                        placeholder="예: 192.168.0.10:3002"
+                        placeholder="192.168.0.10:3002"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
@@ -72,26 +74,26 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                             onClick={handleConnect}
                             disabled={status === 'loading'}
                         >
-                            {status === 'loading' ? '⏳ 연결 중...' : '🔗 연결'}
+                            {status === 'loading' ? `⏳ ${t('guest.connecting')}` : `🔗 ${t('guest.connect')}`}
                         </button>
                         <button className="back-btn" onClick={onBack}>
-                            ← 뒤로
+                            ← {t('common.back')}
                         </button>
                     </div>
                     {message && <p className="error-message">{message}</p>}
                 </>
             ) : (
                 <>
-                    <h1>🔐 로그인</h1>
-                    <p>서버: {address}</p>
+                    <h1>🔐 {t('login.title')}</h1>
+                    <p>{t('guest.serverAddress')}: {address}</p>
                     <input
-                        placeholder="이메일"
+                        placeholder={t('guest.email')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <input
                         type="password"
-                        placeholder="비밀번호"
+                        placeholder={t('guest.password')}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
@@ -107,10 +109,10 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                             onClick={handleLogin}
                             disabled={status === 'loading'}
                         >
-                            {status === 'loading' ? '⏳ 로그인 중...' : '로그인'}
+                            {status === 'loading' ? `⏳ ${t('guest.connecting')}` : t('common.login')}
                         </button>
                         <button className="back-btn" onClick={() => setStep('address')}>
-                            ← 뒤로
+                            ← {t('common.back')}
                         </button>
                     </div>
                 </>

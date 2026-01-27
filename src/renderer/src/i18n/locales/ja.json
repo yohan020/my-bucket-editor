@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "キャンセル",
+    "create": "作成",
+    "delete": "削除",
+    "save": "保存",
+    "close": "閉じる",
+    "confirm": "確認",
+    "back": "戻る",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "settings": "設定",
+    "language": "言語"
+  },
+  "modeSelect": {
+    "title": "My Bucket Editor",
+    "selectMode": "モードを選択してください",
+    "host": "ホスト",
+    "hostDesc": "サーバーを起動して他のユーザーを招待します",
+    "guest": "ゲスト",
+    "guestDesc": "他のユーザーのサーバーに接続します"
+  },
+  "dashboard": {
+    "title": "プロジェクトダッシュボード",
+    "createProject": "新規プロジェクト",
+    "deleteProject": "プロジェクト削除",
+    "startServer": "サーバー起動",
+    "stopServer": "サーバー停止",
+    "openEditor": "エディタを開く",
+    "manageUsers": "ユーザー管理",
+    "noProjects": "登録されたプロジェクトがありません。",
+    "serverRunning": "サーバー実行中",
+    "serverStopped": "サーバー停止中",
+    "port": "ポート",
+    "path": "パス"
+  },
+  "createProject": {
+    "title": "新規プロジェクト作成",
+    "projectName": "プロジェクト名",
+    "projectPath": "パス",
+    "selectFolder": "選択"
+  },
+  "editor": {
+    "fileExplorer": "📁 ファイルエクスプローラー",
+    "selectFile": "ファイルを選択してください",
+    "connected": "接続済み",
+    "disconnected": "切断",
+    "users": "ユーザー",
+    "online": "オンライン",
+    "offline": "オフライン",
+    "disconnect": "切断",
+    "autoSaved": "作業内容が保存されました。"
+  },
+  "guest": {
+    "title": "ゲスト接続",
+    "serverAddress": "サーバーアドレス",
+    "email": "メール",
+    "password": "パスワード",
+    "connect": "接続",
+    "connecting": "接続中...",
+    "connectionStatus": "接続状態",
+    "waitingConnection": "接続待機中",
+    "serverShutdown": "ホストがサーバーを終了しました。",
+    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。"
+  },
+  "userManage": {
+    "title": "ユーザー管理",
+    "approvedUsers": "承認済みユーザー",
+    "pendingUsers": "承認待ち",
+    "noApprovedUsers": "承認済みユーザーがいません。",
+    "noPendingUsers": "待機中のユーザーがいません。",
+    "approve": "承認",
+    "reject": "拒否"
+  },
+  "login": {
+    "title": "ログイン",
+    "guestLogin": "ゲストログイン"
+  },
+  "errors": {
+    "connectionFailed": "接続に失敗しました。",
+    "invalidCredentials": "メールまたはパスワードが間違っています。",
+    "serverError": "サーバーエラーが発生しました。",
+    "networkError": "ネットワークエラーが発生しました。"
+  },
+  "menu": {
+    "settings": "設定変更",
+    "rename": "名前変更",
+    "openFolder": "フォルダを開く",
+    "deleteProject": "プロジェクト削除"
+  }
+}
