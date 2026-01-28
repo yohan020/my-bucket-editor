@@ -21,6 +21,24 @@ app.whenReady().then(() => {
     })
   })
 
+  // [중요] localtunnel 경고 페이지 우회를 위한 헤더 주입
+  // Renderer에서 fetch/socket 요청 시 브라우저 보안 정책으로 헤더 설정이 막힐 수 있어 Main에서 처리
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    const { url } = details
+    // localtunnel 도메인으로 나가는 요청에만 헤더 추가
+    if (url.includes('loca.lt')) {
+      callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          'Bypass-Tunnel-Reminder': 'true',
+          'User-Agent': 'MyBucketEditor-Client/1.0' // 브라우저가 아닌 것으로 인식되게 함
+        }
+      })
+    } else {
+      callback({ requestHeaders: details.requestHeaders })
+    }
+  })
+
   ipcMain.on('ping', () => console.log('pong'))
 
   // 모든 IPC 핸들러 등록
@@ -34,6 +52,7 @@ app.whenReady().then(() => {
   })
 })
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await import('./tunnel').then(m => m.cleanupTunnels())
   if (process.platform !== 'darwin') app.quit()
 })
