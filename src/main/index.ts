@@ -1,8 +1,12 @@
 // [Main Process 진입점] Electron 앱 초기화, IPC 등록, 윈도우 생성을 담당
-import { app, BrowserWindow, ipcMain, session } from 'electron'
+import { app, BrowserWindow, ipcMain, session, Tray, Menu, nativeImage } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createWindow } from './window'
 import { registerAllHandlers } from './ipc'
+import icon from '../../resources/icon.png?asset'
+
+let tray: Tray | null = null
+let isQuitting = false
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
@@ -44,15 +48,62 @@ app.whenReady().then(() => {
   // 모든 IPC 핸들러 등록
   registerAllHandlers()
 
-  // 윈도우 생성
-  createWindow()
+  // 윈도우 생성 및 트레이 설정
+  const mainWindow = createWindow()
+  createTray(mainWindow)
+
+  // [핵심] 닫기 버튼 오버라이딩 -> 트레이로 숨김
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault()
+      mainWindow.hide()
+      return false
+    }
+    return true
+  })
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+    } else {
+      // 이미 실행 중이면 창 보이기
+      mainWindow.show()
+    }
   })
 })
 
-app.on('window-all-closed', async () => {
-  await import('./tunnel').then(m => m.cleanupTunnels())
-  if (process.platform !== 'darwin') app.quit()
+app.on('window-all-closed', () => {
+  // 트레이 모드에서는 창이 닫혀도(숨겨져도) 종료하지 않음
+  // 명시적 종료 시에만 cleanup 후 quit
 })
+
+app.on('before-quit', async () => {
+  isQuitting = true
+  // 앱 종료 시 터널 정리
+  await import('./tunnel').then(m => m.cleanupTunnels())
+})
+
+// 시스템 트레이 생성 함수
+function createTray(mainWindow: BrowserWindow): void {
+  const iconImage = nativeImage.createFromPath(icon)
+  tray = new Tray(iconImage)
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '열기 (Open)',
+      click: () => mainWindow.show()
+    },
+    { type: 'separator' },
+    {
+      label: '종료 (Quit)',
+      click: () => {
+        isQuitting = true
+        app.quit()
+      }
+    }
+  ])
+
+  tray.setToolTip('My Bucket Editor')
+  tray.setContextMenu(contextMenu)
+  tray.on('double-click', () => mainWindow.show())
+}
