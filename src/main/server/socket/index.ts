@@ -2,18 +2,19 @@
 import { Server, Socket } from "socket.io"
 import { scanDirectory, readFileContent, writeFileContent } from '../../utils/fileSystem'
 import { verifyToken } from '../utils/jwt'
+import { loadApprovedUsers } from '../../utils/userStore'
 import * as Y from 'yjs'
 
-// 파일별 현재 내용 캐시 (메모리)
-const fileContents = new Map<string, string>()
-
-// 파일별 Yjs 문서 관리
-const yDocs = new Map<string, Y.Doc>()
-
-// 현재 접속 중인 유저 목록
-const connectedUsers = new Map<string, string>()
-
 export function setupSocketHandlers(io: Server, projectPath: string): void {
+    // [Scope Fix] 각 서버 인스턴스마다 독립적인 상태 관리를 위해 함수 내부로 이동
+    // 파일별 현재 내용 캐시 (메모리)
+    const fileContents = new Map<string, string>()
+
+    // 파일별 Yjs 문서 관리
+    const yDocs = new Map<string, Y.Doc>()
+
+    // 현재 접속 중인 유저 목록
+    const connectedUsers = new Map<string, string>()
 
 
     //토큰 검증 미들웨어 추가
@@ -108,16 +109,26 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
         })
 
         // 파일 저장 요청 (Ctrl+S)
-        socket.on('file:write', async ({ filePath }: { filePath: string }) => {
+        socket.on('file:write', async ({ filePath, content }: { filePath: string, content: string }) => {
             console.log('📝 파일 저장 요청:', filePath)
             try {
-                const content = fileContents.get(filePath)
+                // 클라이언트가 보낸 content를 최우선으로 사용
                 if (content !== undefined) {
                     await writeFileContent(filePath, content)
+                    // 캐시도 업데이트
+                    fileContents.set(filePath, content)
                     console.log('✅ 파일 저장 성공:', filePath)
                     socket.emit('file:write:response', { success: true, filePath })
                 } else {
-                    socket.emit('file:write:response', { success: false, error: '캐시에 내용이 없습니다.' })
+                    // content가 없을 경우 캐시 확인 (하위 호환)
+                    const cached = fileContents.get(filePath)
+                    if (cached !== undefined) {
+                        await writeFileContent(filePath, cached)
+                        console.log('✅ 파일 저장 성공 (캐시 사용):', filePath)
+                        socket.emit('file:write:response', { success: true, filePath })
+                    } else {
+                        socket.emit('file:write:response', { success: false, error: '저장할 내용이 없습니다.' })
+                    }
                 }
             } catch (error) {
                 console.error('❌ 파일 저장 실패:', error)
@@ -143,7 +154,6 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
 
         // 승인된 유저 목록 요청 (Guest용)
         socket.on('users:approved', async (port: number) => {
-            const { loadApprovedUsers } = await import('../../utils/userStore')
             const users = await loadApprovedUsers(port)
             socket.emit('users:approved', users.map(u => ({ email: u.email })))
         })

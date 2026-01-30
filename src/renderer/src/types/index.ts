@@ -14,4 +14,11 @@ export interface FileNode {
     children?: FileNode[]
 }
 
-export type ViewState = 'MODE_SELECT' |'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT' | 'EDITOR' | 'GUEST_CONNECT' | 'GUEST_EDITOR'
+export type ViewState = 'MODE_SELECT' |'LOGIN' | 'DASHBOARD' | 'CREATE_PROJECT' | 'EDITOR' | 'GUEST_CONNECT' | 'GUEST_EDITOR' | 'SETTINGS'
+
+export interface BackupInfo {
+    fileName: string;
+    filePath: string;
+    createdAt: Date;
+    size: number;
+}
