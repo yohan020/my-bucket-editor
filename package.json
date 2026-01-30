@@ -24,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@monaco-editor/react": "^4.7.0",
+    "adm-zip": "^0.5.16",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "file-icons-js": "^1.1.0",
