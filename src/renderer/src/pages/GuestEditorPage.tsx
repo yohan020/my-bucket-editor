@@ -341,12 +341,34 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 </button>
                 <button
                     className="toggle-panel-btn"
-                    onClick={() => {
+                    onClick={async () => {
                         let targetAddress = address
                         if (!address.startsWith('http://') && !address.startsWith('https://')) {
                             targetAddress = `http://${address}`
                         }
-                        window.open(`${targetAddress}/api/download`, '_blank')
+
+                        try {
+                            const response = await fetch(`${targetAddress}/api/download`, {
+                                headers: {
+                                    'Bypass-Tunnel-Reminder': 'true'
+                                }
+                            })
+
+                            if (!response.ok) throw new Error('Download failed')
+
+                            const blob = await response.blob()
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = 'project_backup.zip'
+                            document.body.appendChild(a)
+                            a.click()
+                            window.URL.revokeObjectURL(url)
+                            document.body.removeChild(a)
+                        } catch (error) {
+                            console.error('Download error:', error)
+                            alert(t('errors.networkError'))
+                        }
                     }}
                     title={t('guest.downloadProject')}
                     style={{ fontSize: '1.2rem', padding: '0 10px' }}
