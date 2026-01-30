@@ -9,6 +9,7 @@ import EditorPage from './pages/EditorPage'
 import ModeSelectPage from './pages/ModeSelectPage'
 import GuestConnectPage from './pages/GuestConnectPage'
 import GuestEditorPage from './pages/GuestEditorPage'
+import SettingsPage from './pages/SettingsPage'
 
 // window.api 타입 선언 (기존 것 유지)
 declare global {
@@ -96,6 +97,12 @@ export default function App() {
     )
   }
 
+  if (view === 'SETTINGS') {
+    return (
+      <SettingsPage onBack={() => setView('DASHBOARD')} />
+    )
+  }
+
   if (view === 'LOGIN') {
     return <LoginPage onLogin={handleLogin} />
   }
@@ -130,6 +137,7 @@ export default function App() {
       onDeleteProject={deleteProject}
       onCreateClick={() => setView('CREATE_PROJECT')}
       onOpenEditor={handleOpenEditor}
+      onOpenSettings={() => setView('SETTINGS')}
     />
   )
 }

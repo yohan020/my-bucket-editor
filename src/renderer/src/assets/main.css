@@ -800,6 +800,211 @@ input:focus {
   overflow: hidden;
 }
 
+/* --- 설정 페이지 (Settings) --- */
+.settings-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #1e1e1e;
+}
+
+.settings-card {
+  background-color: #252526;
+  padding: 40px;
+  border-radius: 8px;
+  width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.settings-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.settings-header .close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #888;
+  cursor: pointer;
+}
+
+.settings-header .close-btn:hover {
+  color: #fff;
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-group label {
+  color: #ccc;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+/* --- 백업 모달 (Backup Modal) --- */
+.modal-content.backup-modal {
+  width: 600px;
+  max-width: 95%;
+}
+
+.backup-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+}
+
+.backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #333;
+}
+
+.backup-item:last-child {
+  border-bottom: none;
+}
+
+.backup-item:hover {
+  background-color: #2a2d2e;
+}
+
+.backup-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  /* 남은 공간 차지 */
+  min-width: 0;
+  /* 텍스트 오버플로우 방지 */
+  margin-right: 20px;
+  /* 버튼과 간격 */
+}
+
+.backup-name {
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.backup-meta {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  /* 줄어들지 않도록 설정 */
+  align-items: center;
+}
+
+/* --- 통합 버튼 스타일 --- */
+.icon-btn {
+  background-color: transparent;
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: #3c3c3c;
+  color: white;
+  border-color: #666;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.action-btn.primary {
+  background-color: #0e639c;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background-color: #1177bb;
+}
+
+.action-btn.success {
+  background-color: #2da44e;
+  color: white;
+}
+
+.action-btn.success:hover {
+  background-color: #2c974b;
+}
+
+.action-btn.warning {
+  background-color: #d29922;
+  color: white;
+}
+
+.action-btn.warning:hover {
+  background-color: #dbab3e;
+}
+
+.action-btn.secondary {
+  background-color: #3c3c3c;
+  color: #ddd;
+}
+
+.action-btn.secondary:hover {
+  background-color: #4c4c4c;
+}
+
+.action-btn.danger {
+  background-color: #d9534f;
+  color: white;
+}
+
+.action-btn.danger:hover {
+  background-color: #c9302c;
+}
+
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 30px;
+  font-style: italic;
+}
+
 .guest-editor .file-tree {
   width: 260px;
   background-color: #1e1e1e;

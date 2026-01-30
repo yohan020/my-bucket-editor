@@ -339,6 +339,20 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 >
                     👥 {onlineUsers.length}
                 </button>
+                <button
+                    className="toggle-panel-btn"
+                    onClick={() => {
+                        let targetAddress = address
+                        if (!address.startsWith('http://') && !address.startsWith('https://')) {
+                            targetAddress = `http://${address}`
+                        }
+                        window.open(`${targetAddress}/api/download`, '_blank')
+                    }}
+                    title={t('guest.downloadProject')}
+                    style={{ fontSize: '1.2rem', padding: '0 10px' }}
+                >
+                    📥
+                </button>
                 <button className="back-btn" onClick={onDisconnect}>{t('editor.disconnect')}</button>
             </header>
             <div className="editor-main">

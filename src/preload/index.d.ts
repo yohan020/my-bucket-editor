@@ -22,6 +22,12 @@ interface ApiInterface {
   stopTunnel: () => Promise<{ success: boolean; error?: string }>
   getTunnelUrl: () => Promise<string | null>
   copyToClipboard: (text: string) => Promise<void>
+  createBackup: (projectPath: string) => Promise<string>
+  listBackups: (projectPath: string) => Promise<any[]>
+  restoreBackup: (projectPath: string, backupPath: string) => Promise<void>
+  getBackupPath: () => Promise<string>
+  setBackupPath: (path: string) => Promise<void>
+  deleteBackup: (backupPath: string) => Promise<boolean>
 }
 
 declare global {

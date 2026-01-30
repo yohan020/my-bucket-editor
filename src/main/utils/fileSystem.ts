@@ -1,6 +1,6 @@
 // [파일 시스템 유틸] 폴더 스캔, 파일 읽기/쓰기 기능
 import { promises as fs } from 'fs'
-import { join, basename } from 'path'
+import { join } from 'path'
 
 export interface FileNode {
     name: string

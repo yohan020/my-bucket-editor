@@ -5,6 +5,8 @@ import { Project } from '../types'
 import KebabMenu from './KebabMenu'
 import UserManageModal from './UserManageModal'
 
+import BackupModal from './BackupModal'
+
 interface Props {
     project: Project
     isActive: boolean
@@ -17,6 +19,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     const { t } = useTranslation()
     const [menuOpen, setMenuOpen] = useState(false)
     const [userModalOpen, setUserModalOpen] = useState(false)
+    const [backupModalOpen, setBackupModalOpen] = useState(false) // 백업 모달 상태
     const [tunnelUrl, setTunnelUrl] = useState<string | null>(null)
     const [isTunnelLoading, setIsTunnelLoading] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
@@ -99,11 +102,21 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             <div className="item-actions-wrapper">
                 <div className="item-actions">
                     <button
-                        className="user-manage-btn"
+                        className="icon-btn"
                         onClick={() => setUserModalOpen(true)}
+                        style={{ marginRight: '5px' }}
                     >
                         👥 {t('dashboard.manageUsers')}
                     </button>
+
+                    <button
+                        className="icon-btn"
+                        onClick={() => setBackupModalOpen(true)}
+                        style={{ marginRight: '5px' }}
+                    >
+                        📦 {t('backup.button')}
+                    </button>
+
                     <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
                         {isActive ? `⏹ ${t('dashboard.stopServer')}` : `▶ ${t('dashboard.startServer')}`}
                     </button>
@@ -140,6 +153,14 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                 port={project.port}
                 isOpen={userModalOpen}
                 onClose={() => setUserModalOpen(false)}
+            />
+
+            {/* 백업 관리 모달 */}
+            <BackupModal
+                isOpen={backupModalOpen}
+                onClose={() => setBackupModalOpen(false)}
+                projectPath={project.path}
+                isServerRunning={isActive}
             />
         </div>
     )
