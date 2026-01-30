@@ -99,6 +99,12 @@ export function registerServerHandlers(): void {
       server.http.close(() => {
         console.log('⛔ 서버가 종료되었습니다.')
       })
+      
+      // [Fix] 서버 종료 시 해당 포트의 터널도 함께 종료
+      import('../tunnel').then(({ stopTunnel }) => {
+          stopTunnel(port).catch(err => console.error('터널 종료 실패:', err))
+      })
+
       servers.delete(port)
       return true
     }
