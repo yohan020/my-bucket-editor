@@ -32,7 +32,8 @@
     "serverRunning": "サーバー実行中",
     "serverStopped": "サーバー停止中",
     "port": "ポート",
-    "path": "パス"
+    "path": "パス",
+    "serverStartRequired": "サーバーを起動してから接続してください。"
   },
   "createProject": {
     "title": "新規プロジェクト作成",
@@ -61,7 +62,8 @@
     "connectionStatus": "接続状態",
     "waitingConnection": "接続待機中",
     "serverShutdown": "ホストがサーバーを終了しました。",
-    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。"
+    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。",
+    "downloadProject": "ダウンロード"
   },
   "userManage": {
     "title": "ユーザー管理",
@@ -93,5 +95,32 @@
     "disableExternal": "共有停止",
     "copied": "コピー完了!",
     "connecting": "接続中..."
+  },
+  "settings": {
+    "title": "設定",
+    "backupPathLabel": "バックアップ保存先設定",
+    "backupPathDesc": "プロジェクトのバックアップファイルが保存される場所を指定します。",
+    "noPath": "設定されたパスなし",
+    "change": "変更",
+    "pathChanged": "バックアップパスが変更されました。",
+    "pathChangeFailed": "バックアップパスの変更に失敗しました。"
+  },
+  "backup": {
+    "title": "バックアップ管理",
+    "button": "バックアップ",
+    "create": "新規バックアップ作成",
+    "restore": "復元",
+    "delete": "削除",
+    "empty": "作成されたバックアップがありません。",
+    "confirmCreate": "現在の状態でバックアップを作成しますか？",
+    "created": "バックアップが作成されました。",
+    "createFailed": "バックアップ作成失敗",
+    "confirmRestore": "⚠️ 注意: このバックアップで復元すると、現在のファイルが上書きされます。\n本当に復元しますか？",
+    "restored": "復元されました。変更を反映するにはプロジェクトを再読み込みしてください。",
+    "restoreFailed": "復元失敗",
+    "confirmDelete": "本当にこのバックアップファイルを削除しますか？",
+    "deleted": "バックアップファイルが削除されました。",
+    "deleteFailed": "削除失敗",
+    "cannotRestoreWhenRunning": "サーバー実行中は復元できません。\nサーバーを停止してから再試行してください。"
   }
 }

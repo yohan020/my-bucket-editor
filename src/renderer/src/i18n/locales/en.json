@@ -12,6 +12,15 @@
     "settings": "Settings",
     "language": "Language"
   },
+  "settings": {
+    "title": "Settings",
+    "backupPathLabel": "Backup Path Settings",
+    "backupPathDesc": "Specify the location where project backup files will be saved.",
+    "noPath": "No path set",
+    "change": "Change",
+    "pathChanged": "Backup path changed.",
+    "pathChangeFailed": "Failed to change backup path."
+  },
   "modeSelect": {
     "title": "My Bucket Editor",
     "selectMode": "Select a mode",
@@ -32,7 +41,8 @@
     "serverRunning": "Server Running",
     "serverStopped": "Server Stopped",
     "port": "Port",
-    "path": "Path"
+    "path": "Path",
+    "serverStartRequired": "Please try connecting after starting the server."
   },
   "createProject": {
     "title": "Create New Project",
@@ -61,7 +71,8 @@
     "connectionStatus": "Connection Status",
     "waitingConnection": "Waiting for connection",
     "serverShutdown": "The host has shut down the server.",
-    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved."
+    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved.",
+    "downloadProject": "Download"
   },
   "userManage": {
     "title": "User Management",
@@ -93,5 +104,23 @@
     "disableExternal": "Stop Sharing",
     "copied": "Copied!",
     "connecting": "Connecting..."
+  },
+  "backup": {
+    "title": "Backup Management",
+    "button": "Backup",
+    "create": "Create Backup",
+    "restore": "Restore",
+    "delete": "Delete",
+    "empty": "No backups available.",
+    "confirmCreate": "Create a backup of the current state?",
+    "created": "Backup created.",
+    "createFailed": "Backup failed.",
+    "confirmRestore": "⚠️ Warning: Restoring this backup will overwrite current files.\nAre you sure?",
+    "restored": "Restored. Reload the project to apply changes.",
+    "restoreFailed": "Restore failed.",
+    "confirmDelete": "Are you sure you want to delete this backup?",
+    "deleted": "Backup deleted.",
+    "deleteFailed": "Delete failed.",
+    "cannotRestoreWhenRunning": "Cannot restore while the server is running.\nPlease stop the server and try again."
   }
 }

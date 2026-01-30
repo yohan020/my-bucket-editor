@@ -14,6 +14,7 @@ interface Props {
     onDeleteProject: (projectId: number) => Promise<any>
     onCreateClick: () => void
     onOpenEditor: (project: Project) => void
+    onOpenSettings: () => void
 }
 
 export default function DashboardPage({
@@ -23,7 +24,8 @@ export default function DashboardPage({
     onToggleServer,
     onDeleteProject,
     onCreateClick,
-    onOpenEditor
+    onOpenEditor,
+    onOpenSettings
 }: Props) {
     const { t } = useTranslation()
 
@@ -67,7 +69,7 @@ export default function DashboardPage({
     // 에디터 열기 전 서버 체크
     const handleOpenEditor = (project: Project) => {
         if (!activeProjectIds.includes(project.id)) {
-            alert(`⚠️ ${t('dashboard.startServer')}!`)
+            alert(`⚠️ ${t('dashboard.serverStartRequired')}`)
             return
         }
         onOpenEditor(project)
@@ -75,7 +77,11 @@ export default function DashboardPage({
 
     return (
         <div className="dashboard-layout">
-            <Header username={username} onCreateClick={onCreateClick} />
+            <Header
+                username={username}
+                onCreateClick={onCreateClick}
+                onSettingsClick={onOpenSettings}
+            />
             <ProjectList
                 projects={projects}
                 activeProjectIds={activeProjectIds}
