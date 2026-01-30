@@ -99,7 +99,7 @@ function createTray(mainWindow: BrowserWindow): void {
   // [Mac Fix] 맥은 메뉴바 아이콘 사이즈를 조절해야 함 (너무 크면 가로로 늘어남)
   if (process.platform === 'darwin') {
       const macIcon = iconImage.resize({ width: 22, height: 22 }) // 22x22가 표준
-      macIcon.setTemplateImage(true) // 다크모드 대응
+      // macIcon.setTemplateImage(true) // 제거: 원본 색상 유지
       tray = new Tray(macIcon)
   } else {
       tray = new Tray(iconImage)
