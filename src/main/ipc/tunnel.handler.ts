@@ -14,9 +14,9 @@ export function registerTunnelHandlers(): void {
     })
 
     // 터널 종료
-    ipcMain.handle('tunnel:stop', async () => {
+    ipcMain.handle('tunnel:stop', async (_, port?: number) => {
         try {
-            await stopTunnel()
+            await stopTunnel(port)
             return { success: true }
         } catch (error: any) {
             return { success: false, error: error.message }
@@ -24,7 +24,7 @@ export function registerTunnelHandlers(): void {
     })
 
     // 현재 터널 URL 조회
-    ipcMain.handle('tunnel:getUrl', () => {
-        return getActiveUrl()
+    ipcMain.handle('tunnel:getUrl', (_, port?: number) => {
+        return getActiveUrl(port)
     })
 }

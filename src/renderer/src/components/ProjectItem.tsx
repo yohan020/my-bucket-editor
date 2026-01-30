@@ -41,9 +41,10 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
         if (!isActive) {
             setTunnelUrl(null)
         } else {
-            // 서버가 켜져있으면 기존 터널 확인
-            (window as any).api.getTunnelUrl().then((url: string | null) => {
+            // 서버가 켜져있으면 기존 터널 확인 (포트별로 확인)
+            (window as any).api.getTunnelUrl(project.port).then((url: string | null) => {
                 if (url) setTunnelUrl(url)
+                else setTunnelUrl(null) // URL이 없으면 명확하게 null 처리
             })
         }
     }, [isActive])
@@ -66,7 +67,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
 
         if (tunnelUrl) {
             setIsTunnelLoading(true)
-            await api.stopTunnel()
+            await api.stopTunnel(project.port)
             setTunnelUrl(null)
             setIsTunnelLoading(false)
         } else {
