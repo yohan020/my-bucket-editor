@@ -55,12 +55,20 @@ app.whenReady().then(() => {
 
   // [핵심] 닫기 버튼 오버라이딩 -> 트레이로 숨김
   mainWindow.on('close', (event) => {
-    if (!isQuitting) {
-      event.preventDefault()
+    if (isQuitting) return true
+
+    event.preventDefault()
+
+    // macOS 별도 처리 (사용자 요청)
+    if (process.platform === 'darwin') {
+      // 맥에서는 보통 닫기 시 앱을 숨김 처리 (Dock에는 남음)
+      // 만약 닫을 때 완전히 종료하고 싶다면 여기서 app.quit() 호출
       mainWindow.hide()
-      return false
+    } else {
+      // 윈도우/리눅스: 트레이로 숨기기
+      mainWindow.hide()
     }
-    return true
+    return false
   })
 
   app.on('activate', () => {
@@ -87,7 +95,15 @@ app.on('before-quit', async () => {
 // 시스템 트레이 생성 함수
 function createTray(mainWindow: BrowserWindow): void {
   const iconImage = nativeImage.createFromPath(icon)
-  tray = new Tray(iconImage)
+  
+  // [Mac Fix] 맥은 메뉴바 아이콘 사이즈를 조절해야 함 (너무 크면 가로로 늘어남)
+  if (process.platform === 'darwin') {
+      const macIcon = iconImage.resize({ width: 22, height: 22 }) // 22x22가 표준
+      macIcon.setTemplateImage(true) // 다크모드 대응
+      tray = new Tray(macIcon)
+  } else {
+      tray = new Tray(iconImage)
+  }
 
   const contextMenu = Menu.buildFromTemplate([
     {
