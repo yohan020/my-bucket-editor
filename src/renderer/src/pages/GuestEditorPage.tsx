@@ -373,7 +373,7 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                         }
                     }}
                     title={t('guest.downloadProject')}
-                    style={{ fontSize: '1rem', padding: '0 15px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ fontSize: '1rem', padding: '8px 15px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                     📥 {t('guest.downloadProject')}
                 </button>
