@@ -62,7 +62,8 @@
     "connectionStatus": "接続状態",
     "waitingConnection": "接続待機中",
     "serverShutdown": "ホストがサーバーを終了しました。",
-    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。"
+    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。",
+    "downloadProject": "ダウンロード"
   },
   "userManage": {
     "title": "ユーザー管理",

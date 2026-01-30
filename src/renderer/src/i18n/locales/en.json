@@ -71,7 +71,8 @@
     "connectionStatus": "Connection Status",
     "waitingConnection": "Waiting for connection",
     "serverShutdown": "The host has shut down the server.",
-    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved."
+    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved.",
+    "downloadProject": "Download"
   },
   "userManage": {
     "title": "User Management",

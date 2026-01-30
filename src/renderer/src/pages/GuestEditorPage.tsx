@@ -312,15 +312,17 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     if (isLoading) {
         return (
             <div className="guest-editor loading-screen">
-                <div>🔄 {t('guest.connecting')} ({address})</div>
+                <div className="spinner"></div>
+                <div>{t('guest.connecting')} ({address})</div>
                 <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#888' }}>
                     {t('guest.connectionStatus')}: {isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('guest.waitingConnection')}`}
                 </div>
                 <button
-                    style={{ marginTop: '20px', padding: '10px 20px' }}
+                    className="secondary-btn"
+                    style={{ marginTop: '30px' }}
                     onClick={onDisconnect}
                 >
-                    ← {t('common.back')}
+                    {t('common.back')}
                 </button>
             </div>
         )
@@ -371,15 +373,25 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                         }
                     }}
                     title={t('guest.downloadProject')}
-                    style={{ fontSize: '1.2rem', padding: '0 10px' }}
+                    style={{ fontSize: '1rem', padding: '0 15px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                    📥
+                    📥 {t('guest.downloadProject')}
                 </button>
                 <button className="back-btn" onClick={onDisconnect}>{t('editor.disconnect')}</button>
             </header>
             <div className="editor-main">
                 <aside className="file-tree">
-                    <div className="sidebar-header">{t('editor.fileExplorer')}</div>
+                    <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{t('editor.fileExplorer')}</span>
+                        <button
+                            className="icon-btn"
+                            onClick={() => socketRef.current?.emit('file:tree')}
+                            title="Reload"
+                            style={{ fontSize: '0.9rem', padding: '2px 5px' }}
+                        >
+                            🔄
+                        </button>
+                    </div>
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">
