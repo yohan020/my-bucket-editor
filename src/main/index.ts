@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, session, Tray, Menu, nativeImage } from 'e
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createWindow } from './window'
 import { registerAllHandlers } from './ipc'
+import { cleanupTunnels } from './tunnel'
 import icon from '../../resources/icon.png?asset'
 
 let tray: Tray | null = null
@@ -80,7 +81,7 @@ app.on('window-all-closed', () => {
 app.on('before-quit', async () => {
   isQuitting = true
   // 앱 종료 시 터널 정리
-  await import('./tunnel').then(m => m.cleanupTunnels())
+  await cleanupTunnels()
 })
 
 // 시스템 트레이 생성 함수
