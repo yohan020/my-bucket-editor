@@ -1,6 +1,7 @@
 // [Guest 연결 페이지] Host IP:Port 입력하여 연결
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getRecentServers, addRecentServer, removeRecentServer, formatRelativeTime, RecentServer } from '../utils/recentServers'
 
 interface Props {
     onConnect: (address: string, token: string, email: string) => void
@@ -15,15 +16,23 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const [password, setPassword] = useState('')
     const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error'>('idle')
     const [message, setMessage] = useState('')
+    const [recentServers, setRecentServers] = useState<RecentServer[]>([])
 
+    // 최근 서버 목록 로드
+    useEffect(() => {
+        setRecentServers(getRecentServers())
+    }, [])
 
-    const handleConnect = async () => {
+    const handleConnect = async (targetAddr?: string) => {
+        const addr = targetAddr || address
+        if (!addr) return
+
         setStatus('loading')
         try {
             // 주소 노멀라이제이션 (http/https 없으면 http:// 추가)
-            let targetAddress = address
-            if (!address.startsWith('http://') && !address.startsWith('https://')) {
-                targetAddress = `http://${address}`
+            let targetAddress = addr
+            if (!addr.startsWith('http://') && !addr.startsWith('https://')) {
+                targetAddress = `http://${addr}`
             }
 
             // 간단한 연결 테스트 (서버에 GET 요청)
@@ -31,6 +40,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                 headers: { 'Bypass-Tunnel-Reminder': 'true' }
             })
             if (res.ok) {
+                setAddress(addr)
                 setStep('login')
                 setStatus('idle')
             } else {
@@ -61,6 +71,8 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             })
             const data = await res.json()
             if (res.ok && data.success) {
+                // 로그인 성공 시 최근 서버에 추가
+                addRecentServer(address)
                 onConnect(address, data.token, email)
             } else {
                 setStatus(res.status === 202 ? 'pending' : 'error')
@@ -72,11 +84,58 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
         }
     }
 
+    const handleRemoveRecent = (addr: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        removeRecentServer(addr)
+        setRecentServers(getRecentServers())
+    }
+
+    const handleRecentClick = (addr: string) => {
+        setAddress(addr)
+        handleConnect(addr)
+    }
+
     return (
         <div className="guest-connect-container">
             {step === 'address' ? (
                 <>
                     <h1>👤 {t('modeSelect.guest')}</h1>
+
+                    {/* 최근 접속 서버 목록 */}
+                    {recentServers.length > 0 && (
+                        <div className="recent-servers">
+                            <div className="recent-servers-header">
+                                📌 {t('guest.recentServers')}
+                            </div>
+                            <div className="recent-servers-list">
+                                {recentServers.map(server => (
+                                    <div
+                                        key={server.address}
+                                        className="recent-server-item"
+                                        onClick={() => handleRecentClick(server.address)}
+                                    >
+                                        <span className="server-address">🌐 {server.address}</span>
+                                        <span className="server-time">{formatRelativeTime(server.lastConnected, t)}</span>
+                                        <button
+                                            className="remove-btn"
+                                            onClick={(e) => handleRemoveRecent(server.address, e)}
+                                            title={t('common.delete')}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 구분선 */}
+                    {recentServers.length > 0 && (
+                        <div className="divider">
+                            <span>{t('guest.directInput')}</span>
+                        </div>
+                    )}
+
                     <p>{t('guest.serverAddress')}</p>
                     <input
                         placeholder="192.168.0.10:3002"
@@ -87,7 +146,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                     <div className="buttons">
                         <button
                             className="connect-btn"
-                            onClick={handleConnect}
+                            onClick={() => handleConnect()}
                             disabled={status === 'loading'}
                         >
                             {status === 'loading' ? `⏳ ${t('guest.connecting')}` : `🔗 ${t('guest.connect')}`}

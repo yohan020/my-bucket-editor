@@ -63,7 +63,16 @@
     "waitingConnection": "接続待機中",
     "serverShutdown": "ホストがサーバーを終了しました。",
     "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。",
-    "downloadProject": "ダウンロード"
+    "downloadProject": "ダウンロード",
+    "recentServers": "最近接続したサーバー",
+    "noRecentServers": "最近の接続履歴がありません",
+    "directInput": "直接入力"
+  },
+  "time": {
+    "justNow": "たった今",
+    "minutesAgo": "{n}分前",
+    "hoursAgo": "{n}時間前",
+    "daysAgo": "{n}日前"
   },
   "userManage": {
     "title": "ユーザー管理",
