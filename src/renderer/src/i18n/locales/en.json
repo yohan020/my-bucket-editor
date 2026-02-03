@@ -24,7 +24,9 @@
     "tunnelServiceDesc": "Select the tunnel service for external sharing.",
     "tunnelSaved": "Tunnel settings saved.",
     "tunnelSaveFailed": "Failed to save tunnel settings.",
-    "ngrokHint": "Create a free account at ngrok.com and copy your authtoken."
+    "ngrokHint": "Create a free account at ngrok.com and copy your authtoken.",
+    "ngrokFreePlanNote": "Free plan only supports 1 tunnel at a time.",
+    "stopServersFirst": "Please stop all servers before changing settings."
   },
   "modeSelect": {
     "title": "My Bucket Editor",

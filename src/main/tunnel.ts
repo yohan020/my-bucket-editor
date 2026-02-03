@@ -83,8 +83,16 @@ async function startLocaltunnel(port: number): Promise<string> {
 
         activeTunnels.set(port, { type: 'localtunnel', tunnel, url })
 
+        // 터널 닫힘 이벤트
         tunnel.on('close', () => {
             console.log(`🔌 터널이 닫혔습니다. (Port: ${port})`)
+            activeTunnels.delete(port)
+        })
+
+        // 에러 이벤트 핸들링 (connection refused 등 무시)
+        tunnel.on('error', (err: any) => {
+            console.warn(`⚠️ LocalTunnel 에러 (무시됨):`, err?.message || err)
+            // 에러 발생 시 터널 정리
             activeTunnels.delete(port)
         })
 

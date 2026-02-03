@@ -155,11 +155,15 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                                         color: '#eee',
                                         border: '1px solid #444',
                                         borderRadius: '4px',
-                                        fontSize: '0.9rem'
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
                                     }}
                                 />
                                 <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#666' }}>
                                     {t('settings.ngrokHint')}
+                                </p>
+                                <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#f59e0b' }}>
+                                    ⚠️ {t('settings.ngrokFreePlanNote')}
                                 </p>
                             </div>
                         )}

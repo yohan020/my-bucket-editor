@@ -77,12 +77,24 @@ export default function DashboardPage({
         onOpenEditor(project)
     }
 
+    // 설정 페이지 열기 전 서버 체크
+    const handleOpenSettings = () => {
+        if (activeProjectIds.length > 0) {
+            showAlert({
+                message: t('settings.stopServersFirst'),
+                type: 'warning'
+            })
+            return
+        }
+        onOpenSettings()
+    }
+
     return (
         <div className="dashboard-layout">
             <Header
                 username={username}
                 onCreateClick={onCreateClick}
-                onSettingsClick={onOpenSettings}
+                onSettingsClick={handleOpenSettings}
             />
             <ProjectList
                 projects={projects}
