@@ -26,17 +26,18 @@ app.whenReady().then(() => {
     })
   })
 
-  // [중요] localtunnel 경고 페이지 우회를 위한 헤더 주입
+  // [중요] 터널 경고 페이지 우회를 위한 헤더 주입
   // Renderer에서 fetch/socket 요청 시 브라우저 보안 정책으로 헤더 설정이 막힐 수 있어 Main에서 처리
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     const { url } = details
-    // localtunnel 도메인으로 나가는 요청에만 헤더 추가
-    if (url.includes('loca.lt')) {
+    // localtunnel 또는 ngrok 도메인으로 나가는 요청에 헤더 추가
+    if (url.includes('loca.lt') || url.includes('ngrok-free.app') || url.includes('ngrok.io') || url.includes('ngrok-free.dev')) {
       callback({
         requestHeaders: {
           ...details.requestHeaders,
           'Bypass-Tunnel-Reminder': 'true',
-          'User-Agent': 'MyBucketEditor-Client/1.0' // 브라우저가 아닌 것으로 인식되게 함
+          'ngrok-skip-browser-warning': 'true', // ngrok 브라우저 경고 우회
+          'User-Agent': 'MyBucketEditor-Client/1.0'
         }
       })
     } else {
