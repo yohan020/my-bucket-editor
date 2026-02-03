@@ -12,6 +12,20 @@
     "settings": "設定",
     "language": "言語"
   },
+  "settings": {
+    "title": "設定",
+    "backupPathLabel": "バックアップパス設定",
+    "backupPathDesc": "プロジェクトバックアップファイルの保存場所を指定します。",
+    "noPath": "パス未設定",
+    "change": "変更",
+    "pathChanged": "バックアップパスが変更されました。",
+    "pathChangeFailed": "バックアップパスの変更に失敗しました。",
+    "tunnelService": "トンネルサービス",
+    "tunnelServiceDesc": "外部共有に使用するトンネルサービスを選択します。",
+    "tunnelSaved": "トンネル設定が保存されました。",
+    "tunnelSaveFailed": "トンネル設定の保存に失敗しました。",
+    "ngrokHint": "ngrok.comで無料アカウントを作成し、authtokenをコピーしてください。"
+  },
   "modeSelect": {
     "title": "My Bucket Editor",
     "selectMode": "モードを選択してください",
@@ -105,15 +119,6 @@
     "copied": "コピー完了!",
     "connecting": "接続中..."
   },
-  "settings": {
-    "title": "設定",
-    "backupPathLabel": "バックアップ保存先設定",
-    "backupPathDesc": "プロジェクトのバックアップファイルが保存される場所を指定します。",
-    "noPath": "設定されたパスなし",
-    "change": "変更",
-    "pathChanged": "バックアップパスが変更されました。",
-    "pathChangeFailed": "バックアップパスの変更に失敗しました。"
-  },
   "backup": {
     "title": "バックアップ管理",
     "button": "バックアップ",
@@ -131,5 +136,13 @@
     "deleted": "バックアップファイルが削除されました。",
     "deleteFailed": "削除失敗",
     "cannotRestoreWhenRunning": "サーバー実行中は復元できません。\nサーバーを停止してから再試行してください。"
+  },
+  "closeConfirm": {
+    "title": "プログラム終了",
+    "message": "どうしますか？",
+    "background": "バックグラウンド維持",
+    "backgroundDesc": "トレイで実行を継続",
+    "quit": "完全終了",
+    "quitDesc": "プログラムを完全に閉じる"
   }
 }

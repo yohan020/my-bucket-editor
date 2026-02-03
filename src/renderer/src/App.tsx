@@ -1,7 +1,8 @@
 // [앱 루트] 화면 상태(View)를 관리하고 페이지 컴포넌트를 렌더링하는 진입점
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ViewState, Project } from './types'
 import { useProjects } from './hooks/useProjects'
+import { ModalProvider } from './contexts/ModalContext'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CreateProjectPage from './pages/CreateProjectPage'
@@ -10,6 +11,8 @@ import ModeSelectPage from './pages/ModeSelectPage'
 import GuestConnectPage from './pages/GuestConnectPage'
 import GuestEditorPage from './pages/GuestEditorPage'
 import SettingsPage from './pages/SettingsPage'
+import CloseConfirmModal from './components/CloseConfirmModal'
+import CustomModal from './components/CustomModal'
 
 // window.api 타입 선언 (기존 것 유지)
 declare global {
@@ -32,6 +35,8 @@ declare global {
       rejectUser: (port: number, email: string) => Promise<any>
       focusWindow: () => Promise<boolean>
       resetFocus: () => Promise<boolean>
+      onCloseConfirm: (callback: () => void) => () => void
+      closeResponse: (action: 'background' | 'quit' | 'cancel') => void
     }
   }
 }
@@ -43,9 +48,18 @@ export default function App() {
   const [guestAddress, setGuestAddress] = useState('')
   const [guestToken, setGuestToken] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
+  const [showCloseModal, setShowCloseModal] = useState(false)
 
   // useProjects 훅에서 모든 필요한 상태와 함수를 가져옴
   const { projects, activeProjectIds, createProject, toggleServer, deleteProject } = useProjects()
+
+  // 창 닫기 확인 모달 리스너
+  useEffect(() => {
+    const cleanup = window.api.onCloseConfirm(() => {
+      setShowCloseModal(true)
+    })
+    return cleanup
+  }, [])
 
   const handleLogin = (name: string) => {
     setUsername(name)
@@ -63,81 +77,109 @@ export default function App() {
     setView('EDITOR')
   }
 
-  if (view === 'MODE_SELECT') {
-    return (
-      <ModeSelectPage
-        onSelectHost={() => setView('LOGIN')}
-        onSelectGuest={() => setView('GUEST_CONNECT')}
-      />
-    )
-  }
+  // 현재 뷰에 따른 페이지 렌더링
+  const renderPage = () => {
+    if (view === 'MODE_SELECT') {
+      return (
+        <ModeSelectPage
+          onSelectHost={() => setView('LOGIN')}
+          onSelectGuest={() => setView('GUEST_CONNECT')}
+        />
+      )
+    }
 
-  if (view === "GUEST_CONNECT") {
-    return (
-      <GuestConnectPage
-        onConnect={(addr, token, email) => {
-          setGuestAddress(addr)
-          setGuestToken(token)
-          setGuestEmail(email)
-          setView('GUEST_EDITOR')
-        }}
-        onBack={() => setView('MODE_SELECT')}
-      />
-    )
-  }
+    if (view === "GUEST_CONNECT") {
+      return (
+        <GuestConnectPage
+          onConnect={(addr, token, email) => {
+            setGuestAddress(addr)
+            setGuestToken(token)
+            setGuestEmail(email)
+            setView('GUEST_EDITOR')
+          }}
+          onBack={() => setView('MODE_SELECT')}
+        />
+      )
+    }
 
-  if (view === "GUEST_EDITOR") {
-    return (
-      <GuestEditorPage
-        address={guestAddress}
-        token={guestToken}
-        email={guestEmail}
-        onDisconnect={() => setView('MODE_SELECT')}
-      />
-    )
-  }
+    if (view === "GUEST_EDITOR") {
+      return (
+        <GuestEditorPage
+          address={guestAddress}
+          token={guestToken}
+          email={guestEmail}
+          onDisconnect={() => setView('MODE_SELECT')}
+        />
+      )
+    }
 
-  if (view === 'SETTINGS') {
-    return (
-      <SettingsPage onBack={() => setView('DASHBOARD')} />
-    )
-  }
+    if (view === 'SETTINGS') {
+      return <SettingsPage onBack={() => setView('DASHBOARD')} />
+    }
 
-  if (view === 'LOGIN') {
-    return <LoginPage onLogin={handleLogin} />
-  }
+    if (view === 'LOGIN') {
+      return <LoginPage onLogin={handleLogin} />
+    }
 
-  if (view === 'CREATE_PROJECT') {
-    return (
-      <CreateProjectPage
-        projectCount={projects.length}
-        onCreate={handleCreate}
-        onCancel={() => setView('DASHBOARD')}
-      />
-    )
-  }
+    if (view === 'CREATE_PROJECT') {
+      return (
+        <CreateProjectPage
+          projectCount={projects.length}
+          onCreate={handleCreate}
+          onCancel={() => setView('DASHBOARD')}
+        />
+      )
+    }
 
-  if (view === 'EDITOR' && currentProject) {
+    if (view === 'EDITOR' && currentProject) {
+      return (
+        <EditorPage
+          projectName={currentProject.name}
+          projectPath={currentProject.path}
+          port={currentProject.port}
+          onBack={() => setView('DASHBOARD')}
+        />
+      )
+    }
+
     return (
-      <EditorPage
-        projectName={currentProject.name}
-        projectPath={currentProject.path}
-        port={currentProject.port}
-        onBack={() => setView('DASHBOARD')}
+      <DashboardPage
+        username={username}
+        projects={projects}
+        activeProjectIds={activeProjectIds}
+        onToggleServer={toggleServer}
+        onDeleteProject={deleteProject}
+        onCreateClick={() => setView('CREATE_PROJECT')}
+        onOpenEditor={handleOpenEditor}
+        onOpenSettings={() => setView('SETTINGS')}
       />
     )
   }
 
   return (
-    <DashboardPage
-      username={username}
-      projects={projects}
-      activeProjectIds={activeProjectIds}
-      onToggleServer={toggleServer}
-      onDeleteProject={deleteProject}
-      onCreateClick={() => setView('CREATE_PROJECT')}
-      onOpenEditor={handleOpenEditor}
-      onOpenSettings={() => setView('SETTINGS')}
-    />
+    <ModalProvider>
+      {renderPage()}
+
+      {/* 전역 커스텀 모달 */}
+      <CustomModal />
+
+      {/* 닫기 확인 모달 (전역) */}
+      {showCloseModal && (
+        <CloseConfirmModal
+          onBackground={() => {
+            window.api.closeResponse('background')
+            setShowCloseModal(false)
+          }}
+          onQuit={() => {
+            window.api.closeResponse('quit')
+            setShowCloseModal(false)
+          }}
+          onCancel={() => {
+            window.api.closeResponse('cancel')
+            setShowCloseModal(false)
+          }}
+        />
+      )}
+    </ModalProvider>
   )
 }

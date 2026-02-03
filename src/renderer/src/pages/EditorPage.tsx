@@ -10,6 +10,7 @@ import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
+import { useModal } from '../contexts/ModalContext'
 
 const editorOptions = {
     automaticLayout: true,
@@ -27,6 +28,7 @@ interface Props {
 
 export default function EditorPage({ projectName, projectPath, port, onBack }: Props) {
     const { t } = useTranslation()
+    const { showAlert } = useModal()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [openTabs, setOpenTabs] = useState<string[]>([])
@@ -187,7 +189,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         if (result.success) {
             setFileTree(result.tree)
         } else {
-            alert('파일 트리 로드 실패: ' + result.error)
+            showAlert({ message: t('errors.serverError') + ': ' + result.error, type: 'error' })
         }
     }
 

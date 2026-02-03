@@ -1,16 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../contexts/ModalContext';
 
 interface SettingsPageProps {
     onBack: () => void;
 }
 
+type TunnelService = 'localtunnel' | 'ngrok';
+
 export default function SettingsPage({ onBack }: SettingsPageProps) {
     const { t, i18n } = useTranslation();
+    const { showAlert } = useModal();
     const [backupPath, setBackupPath] = useState('');
+
+    // 터널 설정 상태
+    const [tunnelService, setTunnelService] = useState<TunnelService>('localtunnel');
+    const [ngrokAuthToken, setNgrokAuthToken] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         loadBackupPath();
+        loadTunnelSettings();
     }, []);
 
     const loadBackupPath = async () => {
@@ -22,18 +32,43 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         }
     };
 
+    const loadTunnelSettings = async () => {
+        try {
+            const settings = await (window as any).api.getTunnelSettings();
+            setTunnelService(settings.service);
+            setNgrokAuthToken(settings.ngrokAuthToken || '');
+        } catch (err) {
+            console.error('Failed to get tunnel settings:', err);
+        }
+    };
+
     const handleChangePath = async () => {
         try {
-            // 폴더 선택 다이얼로그
             const selectedPath = await (window as any).api.selectFolder();
             if (selectedPath) {
                 await (window as any).api.setBackupPath(selectedPath);
                 setBackupPath(selectedPath);
-                alert(t('settings.pathChanged'));
+                showAlert({ message: t('settings.pathChanged'), type: 'success' });
             }
         } catch (err) {
             console.error('Failed to set backup path:', err);
-            alert(t('settings.pathChangeFailed'));
+            showAlert({ message: t('settings.pathChangeFailed'), type: 'error' });
+        }
+    };
+
+    const handleSaveTunnelSettings = async () => {
+        setIsSaving(true);
+        try {
+            await (window as any).api.setTunnelSettings({
+                service: tunnelService,
+                ngrokAuthToken: ngrokAuthToken
+            });
+            showAlert({ message: t('settings.tunnelSaved'), type: 'success' });
+        } catch (err) {
+            console.error('Failed to save tunnel settings:', err);
+            showAlert({ message: t('settings.tunnelSaveFailed'), type: 'error' });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -50,7 +85,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 </div>
 
                 <div className="settings-body">
-                    {/* 언어 설정 추가 */}
+                    {/* 언어 설정 */}
                     <div className="settings-group">
                         <label>{t('common.language')}</label>
                         <div className="language-selector" style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
@@ -78,6 +113,68 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                         </div>
                     </div>
 
+                    {/* 터널 서비스 설정 */}
+                    <div className="settings-group">
+                        <label>{t('settings.tunnelService')}</label>
+                        <p style={{ margin: '5px 0 10px', fontSize: '0.85rem', color: '#888' }}>
+                            {t('settings.tunnelServiceDesc')}
+                        </p>
+
+                        <select
+                            value={tunnelService}
+                            onChange={(e) => setTunnelService(e.target.value as TunnelService)}
+                            style={{
+                                padding: '10px',
+                                backgroundColor: '#333',
+                                color: '#eee',
+                                border: '1px solid #444',
+                                borderRadius: '4px',
+                                fontSize: '0.95rem',
+                                width: '100%',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <option value="localtunnel">LocalTunnel (기본)</option>
+                            <option value="ngrok">ngrok (안정적)</option>
+                        </select>
+
+                        {/* ngrok API Key 입력 (ngrok 선택 시만 표시) */}
+                        {tunnelService === 'ngrok' && (
+                            <div style={{ marginTop: '15px' }}>
+                                <label style={{ fontSize: '0.9rem', color: '#aaa' }}>ngrok API Key</label>
+                                <input
+                                    type="password"
+                                    value={ngrokAuthToken}
+                                    onChange={(e) => setNgrokAuthToken(e.target.value)}
+                                    placeholder="ngrok authtoken"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        marginTop: '5px',
+                                        backgroundColor: '#333',
+                                        color: '#eee',
+                                        border: '1px solid #444',
+                                        borderRadius: '4px',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                                <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#666' }}>
+                                    {t('settings.ngrokHint')}
+                                </p>
+                            </div>
+                        )}
+
+                        <button
+                            className="action-btn primary"
+                            onClick={handleSaveTunnelSettings}
+                            disabled={isSaving}
+                            style={{ marginTop: '15px' }}
+                        >
+                            {isSaving ? '...' : t('common.save')}
+                        </button>
+                    </div>
+
+                    {/* 백업 경로 설정 */}
                     <div className="settings-group">
                         <label>{t('settings.backupPathLabel')}</label>
                         <p style={{ margin: 0, fontSize: '0.9rem', color: '#888' }}>

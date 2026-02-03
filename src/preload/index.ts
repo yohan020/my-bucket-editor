@@ -38,6 +38,8 @@ const api = {
   startTunnel: (port: number): Promise<{ success: boolean; url?: string; error?: string }> => ipcRenderer.invoke('tunnel:start', port),
   stopTunnel: (port?: number): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('tunnel:stop', port),
   getTunnelUrl: (port?: number): Promise<string | null> => ipcRenderer.invoke('tunnel:getUrl', port),
+  getTunnelSettings: (): Promise<{ service: string; ngrokAuthToken: string }> => ipcRenderer.invoke('tunnel:getSettings'),
+  setTunnelSettings: (settings: { service?: string; ngrokAuthToken?: string }): Promise<{ success: boolean }> => ipcRenderer.invoke('tunnel:setSettings', settings),
 
   // === 클립보드 API ===
   copyToClipboard: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:write', text),
@@ -48,7 +50,17 @@ const api = {
   restoreBackup: (projectPath: string, backupPath: string): Promise<void> => ipcRenderer.invoke('backup:restore', { projectPath, backupPath }),
   getBackupPath: (): Promise<string> => ipcRenderer.invoke('backup:getPath'),
   setBackupPath: (path: string): Promise<void> => ipcRenderer.invoke('backup:setPath', path),
-  deleteBackup: (backupPath: string): Promise<boolean> => ipcRenderer.invoke('backup:delete', backupPath)
+  deleteBackup: (backupPath: string): Promise<boolean> => ipcRenderer.invoke('backup:delete', backupPath),
+
+  // === 창 닫기 확인 API ===
+  onCloseConfirm: (callback: () => void) => {
+    const handler = () => callback()
+    ipcRenderer.on('app:close-confirm', handler)
+    return () => ipcRenderer.removeListener('app:close-confirm', handler)
+  },
+  closeResponse: (action: 'background' | 'quit' | 'cancel'): void => {
+    ipcRenderer.send('app:close-response', action)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

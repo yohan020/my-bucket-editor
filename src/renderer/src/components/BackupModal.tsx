@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackupInfo } from '../types';
+import { useModal } from '../contexts/ModalContext';
 
 interface BackupModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface BackupModalProps {
 
 export default function BackupModal({ isOpen, onClose, projectPath, isServerRunning }: BackupModalProps) {
     const { t } = useTranslation();
+    const { showAlert, showConfirm } = useModal();
     const [backups, setBackups] = useState<BackupInfo[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -35,16 +37,16 @@ export default function BackupModal({ isOpen, onClose, projectPath, isServerRunn
 
     const handleCreateBackup = async () => {
         try {
-            const confirmed = confirm(t('backup.confirmCreate'));
+            const confirmed = await showConfirm(t('backup.confirmCreate'));
             if (!confirmed) return;
 
             setLoading(true);
             await (window as any).api.createBackup(projectPath);
             await loadBackups();
-            alert(t('backup.created'));
+            showAlert({ message: t('backup.created'), type: 'success' });
         } catch (err) {
             console.error('Backup creation failed:', err);
-            alert(t('backup.createFailed'));
+            showAlert({ message: t('backup.createFailed'), type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -52,21 +54,21 @@ export default function BackupModal({ isOpen, onClose, projectPath, isServerRunn
 
     const handleRestore = async (backupPath: string) => {
         if (isServerRunning) {
-            alert(t('backup.cannotRestoreWhenRunning'));
+            showAlert({ message: t('backup.cannotRestoreWhenRunning'), type: 'warning' });
             return;
         }
 
         try {
-            const confirmed = confirm(t('backup.confirmRestore'));
+            const confirmed = await showConfirm(t('backup.confirmRestore'));
             if (!confirmed) return;
 
             setLoading(true);
             await (window as any).api.restoreBackup(projectPath, backupPath);
-            alert(t('backup.restored'));
+            showAlert({ message: t('backup.restored'), type: 'success' });
             onClose();
         } catch (err) {
             console.error('Restore failed:', err);
-            alert(t('backup.restoreFailed'));
+            showAlert({ message: t('backup.restoreFailed'), type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -74,16 +76,16 @@ export default function BackupModal({ isOpen, onClose, projectPath, isServerRunn
 
     const handleDeleteBackup = async (backupPath: string) => {
         try {
-            const confirmed = confirm(t('backup.confirmDelete'));
+            const confirmed = await showConfirm(t('backup.confirmDelete'));
             if (!confirmed) return;
 
             setLoading(true);
             await (window as any).api.deleteBackup(backupPath);
             await loadBackups(); // Refresh list
-            alert(t('backup.deleted'));
+            showAlert({ message: t('backup.deleted'), type: 'success' });
         } catch (err) {
             console.error('Delete failed:', err);
-            alert(t('backup.deleteFailed'));
+            showAlert({ message: t('backup.deleteFailed'), type: 'error' });
         } finally {
             setLoading(false);
         }
