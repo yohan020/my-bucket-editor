@@ -72,7 +72,16 @@
     "waitingConnection": "Waiting for connection",
     "serverShutdown": "The host has shut down the server.",
     "serverShutdownWithSave": "The host has shut down the server. Your work has been saved.",
-    "downloadProject": "Download"
+    "downloadProject": "Download",
+    "recentServers": "Recent Servers",
+    "noRecentServers": "No recent connections",
+    "directInput": "Enter manually"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n} hours ago",
+    "daysAgo": "{n} days ago"
   },
   "userManage": {
     "title": "User Management",
