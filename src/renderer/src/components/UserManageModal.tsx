@@ -1,6 +1,7 @@
 // [유저 관리 모달] 승인된 유저 목록 + 대기 중인 유저 목록 (가로 레이아웃)
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useModal } from '../contexts/ModalContext'
 
 interface ApprovedUser {
     email: string
@@ -21,6 +22,7 @@ interface Props {
 
 export default function UserManageModal({ port, isOpen, onClose }: Props) {
     const { t } = useTranslation()
+    const { showConfirm } = useModal()
     const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([])
     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
 
@@ -38,7 +40,8 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
     }
 
     const handleRemove = async (email: string) => {
-        if (confirm(`${t('common.delete')} ${email}?`)) {
+        const confirmed = await showConfirm(`${t('common.delete')} ${email}?`)
+        if (confirmed) {
             await window.api.removeApprovedUser(port, email)
             loadUsers()
         }

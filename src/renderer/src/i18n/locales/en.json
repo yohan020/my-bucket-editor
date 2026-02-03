@@ -19,7 +19,12 @@
     "noPath": "No path set",
     "change": "Change",
     "pathChanged": "Backup path changed.",
-    "pathChangeFailed": "Failed to change backup path."
+    "pathChangeFailed": "Failed to change backup path.",
+    "tunnelService": "Tunnel Service",
+    "tunnelServiceDesc": "Select the tunnel service for external sharing.",
+    "tunnelSaved": "Tunnel settings saved.",
+    "tunnelSaveFailed": "Failed to save tunnel settings.",
+    "ngrokHint": "Create a free account at ngrok.com and copy your authtoken."
   },
   "modeSelect": {
     "title": "My Bucket Editor",
@@ -131,5 +136,13 @@
     "deleted": "Backup deleted.",
     "deleteFailed": "Delete failed.",
     "cannotRestoreWhenRunning": "Cannot restore while the server is running.\nPlease stop the server and try again."
+  },
+  "closeConfirm": {
+    "title": "Close Application",
+    "message": "What would you like to do?",
+    "background": "Minimize to Tray",
+    "backgroundDesc": "Keep running in background",
+    "quit": "Exit",
+    "quitDesc": "Close completely"
   }
 }

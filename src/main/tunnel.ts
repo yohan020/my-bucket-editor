@@ -1,13 +1,51 @@
-// [터널 서비스] localtunnel을 이용한 외부 접속 URL 생성
+// [터널 서비스] LocalTunnel + ngrok 지원
 import localtunnel from 'localtunnel'
+import ngrok from '@ngrok/ngrok'
+import ElectronStore from 'electron-store'
+
+// electron-store ESM 호환성 처리
+const Store = (ElectronStore as any).default || ElectronStore
+
+export type TunnelService = 'localtunnel' | 'ngrok'
 
 interface TunnelInstance {
+    type: TunnelService
     tunnel: any
     url: string
 }
 
+interface TunnelSettings {
+    service: TunnelService
+    ngrokAuthToken: string
+}
+
+// 설정 저장소
+const store = new Store({
+    defaults: {
+        tunnelSettings: {
+            service: 'localtunnel',
+            ngrokAuthToken: ''
+        }
+    }
+}) as any
+
 // 포트별 터널 인스턴스 관리
 const activeTunnels = new Map<number, TunnelInstance>()
+
+/**
+ * 터널 설정 가져오기
+ */
+export function getTunnelSettings(): TunnelSettings {
+    return store.get('tunnelSettings')
+}
+
+/**
+ * 터널 설정 저장
+ */
+export function setTunnelSettings(settings: Partial<TunnelSettings>): void {
+    const current = getTunnelSettings()
+    store.set('tunnelSettings', { ...current, ...settings })
+}
 
 /**
  * 터널 시작 - 외부에서 접속 가능한 URL 생성
@@ -18,10 +56,22 @@ export async function startTunnel(port: number): Promise<string> {
         return activeTunnels.get(port)!.url
     }
 
+    const settings = getTunnelSettings()
+    
+    if (settings.service === 'ngrok') {
+        return startNgrokTunnel(port, settings.ngrokAuthToken)
+    } else {
+        return startLocaltunnel(port)
+    }
+}
+
+/**
+ * LocalTunnel 시작
+ */
+async function startLocaltunnel(port: number): Promise<string> {
     console.log(`🌐 localtunnel 연결 시도 중... (Port: ${port})`)
 
     try {
-        // localtunnel 연결 (서브도메인 랜덤 생성 or 지정 가능)
         const tunnel = await localtunnel({ port })
 
         if (!tunnel) {
@@ -31,10 +81,8 @@ export async function startTunnel(port: number): Promise<string> {
         const url = tunnel.url
         console.log(`✅ localtunnel 연결 성공: ${url} → localhost:${port}`)
 
-        // Map에 저장
-        activeTunnels.set(port, { tunnel, url })
+        activeTunnels.set(port, { type: 'localtunnel', tunnel, url })
 
-        // 터널 닫힘 이벤트 감지
         tunnel.on('close', () => {
             console.log(`🔌 터널이 닫혔습니다. (Port: ${port})`)
             activeTunnels.delete(port)
@@ -48,15 +96,51 @@ export async function startTunnel(port: number): Promise<string> {
 }
 
 /**
+ * ngrok 터널 시작
+ */
+async function startNgrokTunnel(port: number, authToken: string): Promise<string> {
+    console.log(`🌐 ngrok 연결 시도 중... (Port: ${port})`)
+
+    if (!authToken) {
+        throw new Error('ngrok API Key가 설정되지 않았습니다. 설정에서 입력해주세요.')
+    }
+
+    try {
+        // ngrok 인증
+        await ngrok.authtoken(authToken)
+
+        // 터널 시작
+        const listener = await ngrok.forward({ addr: port, authtoken: authToken })
+        const url = listener.url()
+
+        if (!url) {
+            throw new Error('ngrok URL을 가져올 수 없습니다.')
+        }
+
+        console.log(`✅ ngrok 연결 성공: ${url} → localhost:${port}`)
+
+        activeTunnels.set(port, { type: 'ngrok', tunnel: listener, url })
+
+        return url
+    } catch (error: any) {
+        console.error('❌ ngrok 연결 실패:', error)
+        throw new Error(error?.message || 'ngrok 터널 생성에 실패했습니다.')
+    }
+}
+
+/**
  * 터널 종료 (특정 포트)
  */
 export async function stopTunnel(port?: number): Promise<void> {
     if (port) {
-        // 특정 포트만 종료
         const instance = activeTunnels.get(port)
         if (instance) {
             try {
-                instance.tunnel.close()
+                if (instance.type === 'ngrok') {
+                    await instance.tunnel.close()
+                } else {
+                    instance.tunnel.close()
+                }
             } catch (e) {
                 console.error(`⚠️ 터널 종료 중 오류 (Port: ${port}):`, e)
             }
@@ -66,12 +150,23 @@ export async function stopTunnel(port?: number): Promise<void> {
         // 모든 터널 종료
         for (const [p, instance] of activeTunnels) {
             try {
-                instance.tunnel.close()
+                if (instance.type === 'ngrok') {
+                    await instance.tunnel.close()
+                } else {
+                    instance.tunnel.close()
+                }
             } catch (e) {
                 console.error(`⚠️ 터널 종료 중 오류 (Port: ${p}):`, e)
             }
         }
         activeTunnels.clear()
+        
+        // ngrok 전체 세션 종료
+        try {
+            await ngrok.disconnect()
+        } catch (e) {
+            // 무시
+        }
     }
 }
 
@@ -82,7 +177,6 @@ export function getActiveUrl(port?: number): string | null {
     if (port) {
         return activeTunnels.get(port)?.url || null
     }
-    // 포트 지정이 없으면 첫 번째 터널 반환 (하위 호환성)
     if (activeTunnels.size > 0) {
         const first = activeTunnels.values().next().value
         return first ? first.url : null
@@ -94,6 +188,6 @@ export function getActiveUrl(port?: number): string | null {
  * 앱 종료 시 정리
  */
 export async function cleanupTunnels(): Promise<void> {
-    await stopTunnel() // 모든 터널 종료
+    await stopTunnel()
     console.log('🧹 모든 터널 정리 완료')
 }

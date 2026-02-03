@@ -19,7 +19,12 @@
     "noPath": "설정된 경로 없음",
     "change": "변경",
     "pathChanged": "백업 경로가 변경되었습니다.",
-    "pathChangeFailed": "백업 경로 변경에 실패했습니다."
+    "pathChangeFailed": "백업 경로 변경에 실패했습니다.",
+    "tunnelService": "터널 서비스",
+    "tunnelServiceDesc": "외부 공유에 사용할 터널 서비스를 선택합니다.",
+    "tunnelSaved": "터널 설정이 저장되었습니다.",
+    "tunnelSaveFailed": "터널 설정 저장에 실패했습니다.",
+    "ngrokHint": "ngrok.com에서 무료 계정을 만들고 authtoken을 복사하세요."
   },
   "modeSelect": {
     "title": "My Bucket Editor",
@@ -131,5 +136,13 @@
     "deleted": "백업 파일이 삭제되었습니다.",
     "deleteFailed": "삭제 실패",
     "cannotRestoreWhenRunning": "서버가 실행 중일 때는 복원할 수 없습니다.\n서버를 종료한 후 다시 시도해주세요."
+  },
+  "closeConfirm": {
+    "title": "프로그램 종료",
+    "message": "어떻게 처리할까요?",
+    "background": "백그라운드 유지",
+    "backgroundDesc": "트레이에서 계속 실행",
+    "quit": "완전 종료",
+    "quitDesc": "프로그램 완전히 닫기"
   }
 }

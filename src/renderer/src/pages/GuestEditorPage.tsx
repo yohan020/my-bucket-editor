@@ -10,6 +10,7 @@ import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
+import { useModal } from '../contexts/ModalContext'
 
 const editorOptions = {
     automaticLayout: true,

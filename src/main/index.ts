@@ -53,22 +53,32 @@ app.whenReady().then(() => {
   const mainWindow = createWindow()
   createTray(mainWindow)
 
-  // [핵심] 닫기 버튼 오버라이딩 -> 트레이로 숨김
+  // [핵심] 닫기 버튼 오버라이딩 -> 트레이로 숨김 또는 종료 선택
   mainWindow.on('close', (event) => {
     if (isQuitting) return true
 
     event.preventDefault()
 
-    // macOS 별도 처리 (사용자 요청)
+    // macOS: 보통 닫기 시 앱을 숨김 처리 (Dock에는 남음)
     if (process.platform === 'darwin') {
-      // 맥에서는 보통 닫기 시 앱을 숨김 처리 (Dock에는 남음)
-      // 만약 닫을 때 완전히 종료하고 싶다면 여기서 app.quit() 호출
       mainWindow.hide()
-    } else {
-      // 윈도우/리눅스: 트레이로 숨기기
-      mainWindow.hide()
+      return false
     }
+
+    // Windows/Linux: Renderer에 커스텀 모달 표시 요청
+    mainWindow.webContents.send('app:close-confirm')
     return false
+  })
+
+  // Renderer에서 사용자 선택 응답 수신
+  ipcMain.on('app:close-response', (_, action: 'background' | 'quit' | 'cancel') => {
+    if (action === 'background') {
+      mainWindow.hide()
+    } else if (action === 'quit') {
+      isQuitting = true
+      app.quit()
+    }
+    // cancel: 아무것도 하지 않음
   })
 
   app.on('activate', () => {

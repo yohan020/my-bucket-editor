@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Project } from '../types'
+import { useModal } from '../contexts/ModalContext'
 
 interface Props {
     projectCount: number
@@ -11,6 +12,7 @@ interface Props {
 
 export default function CreateProjectPage({ projectCount, onCreate, onCancel }: Props) {
     const { t } = useTranslation()
+    const { showAlert } = useModal()
     const [name, setName] = useState('')
     const [path, setPath] = useState('')
 
@@ -21,7 +23,7 @@ export default function CreateProjectPage({ projectCount, onCreate, onCancel }: 
 
     const handleCreate = () => {
         if (!path || !name) {
-            alert(t('errors.serverError'))
+            showAlert({ message: t('errors.serverError'), type: 'warning' })
             return
         }
 
@@ -34,7 +36,7 @@ export default function CreateProjectPage({ projectCount, onCreate, onCancel }: 
         }
 
         onCreate(newProject)
-        alert(`${t('common.create')} ✓`)
+        showAlert({ message: `${t('common.create')} ✓`, type: 'success' })
     }
 
     return (

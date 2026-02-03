@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Project } from '../types'
+import { useModal } from '../contexts/ModalContext'
 import KebabMenu from './KebabMenu'
 import UserManageModal from './UserManageModal'
 
@@ -17,6 +18,7 @@ interface Props {
 
 export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
     const { t } = useTranslation()
+    const { showAlert } = useModal()
     const [menuOpen, setMenuOpen] = useState(false)
     const [userModalOpen, setUserModalOpen] = useState(false)
     const [backupModalOpen, setBackupModalOpen] = useState(false) // 백업 모달 상태
@@ -59,7 +61,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     // 터널 토글 핸들러
     const handleToggleTunnel = async () => {
         if (!isActive) {
-            alert(t('dashboard.startServer') + '!')
+            showAlert({ message: t('dashboard.startServer') + '!', type: 'warning' })
             return
         }
 
@@ -76,7 +78,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             if (result.success && result.url) {
                 setTunnelUrl(result.url)
             } else {
-                alert(result.error || t('errors.networkError'))
+                showAlert({ message: result.error || t('errors.networkError'), type: 'error' })
             }
             setIsTunnelLoading(false)
         }
@@ -85,7 +87,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     const handleCopyUrl = async () => {
         if (tunnelUrl) {
             await (window as any).api.copyToClipboard(tunnelUrl)
-            alert(t('tunnel.copied'))
+            showAlert({ message: t('tunnel.copied'), type: 'success' })
         }
     }
 
