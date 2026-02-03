@@ -29,18 +29,26 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
 
         setStatus('loading')
         try {
-            // 주소 노멀라이제이션 (http/https 없으면 http:// 추가)
+            // 주소 노멀라이제이션 (http/https 없으면 추가)
             let targetAddress = addr
             if (!addr.startsWith('http://') && !addr.startsWith('https://')) {
-                targetAddress = `http://${addr}`
+                // ngrok 도메인은 https 사용
+                if (addr.includes('ngrok') || addr.includes('.app') || addr.includes('.dev')) {
+                    targetAddress = `https://${addr}`
+                } else {
+                    targetAddress = `http://${addr}`
+                }
             }
 
             // 간단한 연결 테스트 (서버에 GET 요청)
             const res = await fetch(targetAddress, {
-                headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                headers: {
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
+                }
             })
             if (res.ok) {
-                setAddress(addr)
+                setAddress(targetAddress) // 전체 URL 저장
                 setStep('login')
                 setStatus('idle')
             } else {
@@ -56,16 +64,13 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const handleLogin = async () => { // 로그인
         setStatus('loading')
         try {
-            let targetAddress = address
-            if (!address.startsWith('http://') && !address.startsWith('https://')) {
-                targetAddress = `http://${address}`
-            }
-
-            const res = await fetch(`${targetAddress}/api/login`, {
+            // address는 이미 handleConnect에서 정규화됨
+            const res = await fetch(`${address}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true'
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({ email, password })
             })
