@@ -24,7 +24,9 @@
     "tunnelServiceDesc": "外部共有に使用するトンネルサービスを選択します。",
     "tunnelSaved": "トンネル設定が保存されました。",
     "tunnelSaveFailed": "トンネル設定の保存に失敗しました。",
-    "ngrokHint": "ngrok.comで無料アカウントを作成し、authtokenをコピーしてください。"
+    "ngrokHint": "ngrok.comで無料アカウントを作成し、authtokenをコピーしてください。",
+    "ngrokFreePlanNote": "無料プランでは同時に1つのトンネルのみ作成可能です。",
+    "stopServersFirst": "設定を変更するには、すべてのサーバーを停止してください。"
   },
   "modeSelect": {
     "title": "My Bucket Editor",

@@ -24,7 +24,9 @@
     "tunnelServiceDesc": "외부 공유에 사용할 터널 서비스를 선택합니다.",
     "tunnelSaved": "터널 설정이 저장되었습니다.",
     "tunnelSaveFailed": "터널 설정 저장에 실패했습니다.",
-    "ngrokHint": "ngrok.com에서 무료 계정을 만들고 authtoken을 복사하세요."
+    "ngrokHint": "ngrok.com에서 무료 계정을 만들고 authtoken을 복사하세요.",
+    "ngrokFreePlanNote": "무료 플랜은 동시에 1개의 터널만 생성 가능합니다.",
+    "stopServersFirst": "설정을 변경하려면 먼저 모든 서버를 종료해주세요."
   },
   "modeSelect": {
     "title": "My Bucket Editor",
