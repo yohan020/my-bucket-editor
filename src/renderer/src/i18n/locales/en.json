@@ -28,8 +28,9 @@
     "ngrokFreePlanNote": "Free plan only supports 1 tunnel at a time.",
     "cloudflareToken": "Cloudflare Tunnel Token",
     "cloudflareTokenDesc": "Enter the token from Zero Trust Dashboard. (Leave blank to use random temporary URL)",
-    "cloudflareDomain": "Custom Domain",
-    "cloudflareDomainDesc": "Enter the domain connected to the tunnel (e.g. https://editor.mydomain.com)",
+    "cloudflareDomain": "Custom Domain (Optional)",
+    "cloudflareDomainDesc": "Domain connected to Tunnel Token (e.g. editor.mydomain.com)",
+    "cloudflareWildcardHint": "Multi-Project: Enter *.domain.com (Cloudflare Conf: * → localhost:4000)",
     "stopServersFirst": "Please stop all servers before changing settings."
   },
   "modeSelect": {

@@ -28,8 +28,10 @@
     "ngrokFreePlanNote": "무료 플랜은 동시에 1개의 터널만 생성 가능합니다.",
     "cloudflareToken": "Cloudflare 터널 토큰",
     "cloudflareTokenDesc": "Zero Trust 대시보드에서 발급받은 토큰을 입력하세요. (비워두면 랜덤 임시 주소 사용)",
-    "cloudflareDomain": "사용자 지정 도메인",
-    "cloudflareDomainDesc": "터널에 연결된 도메인 주소를 입력하세요 (예: https://editor.mydomain.com)",
+    "cloudflareDomain": "커스텀 도메인 (선택)",
+    "cloudflareDomainDesc": "Tunnel Token에 연결된 도메인 주소 (예: editor.mydomain.com)",
+    "cloudflareWildcardHint": "멀티 프로젝트: *.domain.com 입력 (Cloudflare 설정: * → localhost:4000)",
+    "save": "설정 저장",
     "stopServersFirst": "설정을 변경하려면 먼저 모든 서버를 종료해주세요."
   },
   "modeSelect": {

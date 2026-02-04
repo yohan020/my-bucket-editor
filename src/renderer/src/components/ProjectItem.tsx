@@ -74,7 +74,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             setIsTunnelLoading(false)
         } else {
             setIsTunnelLoading(true)
-            const result = await api.startTunnel(project.port)
+            const result = await api.startTunnel(project.port, project.name)
             if (result.success && result.url) {
                 setTunnelUrl(result.url)
             } else {

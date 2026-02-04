@@ -223,6 +223,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                                 <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#666' }}>
                                     {t('settings.cloudflareDomainDesc')}
                                 </p>
+                                <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#10b981' }}>
+                                    💡 {t('settings.cloudflareWildcardHint')}
+                                </p>
                             </div>
                         )}
 
