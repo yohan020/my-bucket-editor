@@ -26,6 +26,10 @@
     "tunnelSaveFailed": "Failed to save tunnel settings.",
     "ngrokHint": "Create a free account at ngrok.com and copy your authtoken.",
     "ngrokFreePlanNote": "Free plan only supports 1 tunnel at a time.",
+    "cloudflareToken": "Cloudflare Tunnel Token",
+    "cloudflareTokenDesc": "Enter the token from Zero Trust Dashboard. (Leave blank to use random temporary URL)",
+    "cloudflareDomain": "Custom Domain",
+    "cloudflareDomainDesc": "Enter the domain connected to the tunnel (e.g. https://editor.mydomain.com)",
     "stopServersFirst": "Please stop all servers before changing settings."
   },
   "modeSelect": {
