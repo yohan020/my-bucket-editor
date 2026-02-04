@@ -375,11 +375,11 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                         }
                     }}
                     title={t('guest.downloadProject')}
-                    style={{ fontSize: '1rem', padding: '8px 15px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ fontSize: '0.85rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', height: '32px' }}
                 >
                     📥 {t('guest.downloadProject')}
                 </button>
-                <button className="back-btn" onClick={onDisconnect}>{t('editor.disconnect')}</button>
+                <button className="back-btn" onClick={onDisconnect} style={{ height: '32px', padding: '6px 12px' }}>{t('editor.disconnect')}</button>
             </header>
             <div className="editor-main">
                 <aside className="file-tree">
