@@ -1,4 +1,4 @@
-// [인증 라우트] 게스트 로그인 API (/api/login) - 유저 인증 및 승인 요청 처리
+// [인증 라우트] 게스트 로그인/회원가입 API - 유저 인증 및 승인 요청 처리
 import { Router } from 'express'
 import { projectUsers, servers } from '../index'
 import { User } from '../../types'
@@ -8,6 +8,7 @@ import { isApprovedUser } from '../../utils/userStore'
 export function createAuthRouter(port: number): Router {
     const router = Router()
 
+    // 로그인 API
     router.post('/api/login', async (req, res) => {
         const {email, password} = req.body
         const serverInstance = servers.get(port)
@@ -25,28 +26,57 @@ export function createAuthRouter(port: number): Router {
         // A. 이미 등록된 유저인 경우
         if (existingUser) {
           if (existingUser.password !== password) {
-            return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 틀렸습니다'})
+            return res.status(401).json({ success: false, message: 'invalid_credentials' })
           }
 
           if (existingUser.status === 'pending') {
-            return res.status(202).json({ success: false, message: '⏳ 호스트의 승인을 기다리는 중입니다.'})
+            return res.status(202).json({ success: false, message: 'pending_approval' })
           }
 
           if (existingUser.status === 'rejected') {
-            return res.status(403).json({ success: false, message: '⛔ 접속이 거절되었습니다.'})
+            return res.status(403).json({ success: false, message: 'access_rejected' })
           }
         }
 
-        // B. 등록되지 않은 유저인 경우
-        const newUser: User = { email, password, status: 'pending'}
-        users.push(newUser)
-        projectUsers.set(port, users);
-
-
-        // 기존 알림 코드 제거 - UserManageModal에서 대기 목록으로 대체됨
-
-
-        return res.status(201).json({success: false, message: '📨 승인 요청을 보냈습니다. 호스트가 수락하면 다시 로그인하세요.'})
+        // B. 등록되지 않은 유저인 경우 - 에러 반환 (별도 회원가입 필요)
+        return res.status(401).json({ success: false, message: 'user_not_found' })
     })
+
+    // 회원가입 (승인 요청) API
+    router.post('/api/register', async (req, res) => {
+        const { email, password } = req.body
+
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: 'missing_fields' })
+        }
+
+        const users = projectUsers.get(port) || [];
+        const existingUser = users.find(u => u.email === email)
+
+        // 이미 등록된 유저인 경우
+        if (existingUser) {
+            if (existingUser.status === 'pending') {
+                return res.status(409).json({ success: false, message: 'already_pending' })
+            }
+            if (existingUser.status === 'rejected') {
+                return res.status(403).json({ success: false, message: 'access_rejected' })
+            }
+            // 이미 승인됨 - 로그인 하라고
+            return res.status(409).json({ success: false, message: 'already_registered' })
+        }
+
+        // 영구 저장된 유저인지 확인
+        if (await isApprovedUser(port, email, password)) {
+            return res.status(409).json({ success: false, message: 'already_registered' })
+        }
+
+        // 새 유저 등록 (pending 상태)
+        const newUser: User = { email, password, status: 'pending' }
+        users.push(newUser)
+        projectUsers.set(port, users)
+
+        return res.status(201).json({ success: true, message: 'request_sent' })
+    })
+
     return router
 }
