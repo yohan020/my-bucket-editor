@@ -6,7 +6,7 @@ interface SettingsPageProps {
     onBack: () => void;
 }
 
-type TunnelService = 'localtunnel' | 'ngrok';
+type TunnelService = 'localtunnel' | 'ngrok' | 'cloudflare';
 
 export default function SettingsPage({ onBack }: SettingsPageProps) {
     const { t, i18n } = useTranslation();
@@ -136,6 +136,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                         >
                             <option value="localtunnel">LocalTunnel (기본)</option>
                             <option value="ngrok">ngrok (안정적)</option>
+                            <option value="cloudflare">Cloudflare (추천 ⭐)</option>
                         </select>
 
                         {/* ngrok API Key 입력 (ngrok 선택 시만 표시) */}
