@@ -33,13 +33,16 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             // 주소 노멀라이제이션 (http/https 없으면 추가)
             let targetAddress = addr
             if (!addr.startsWith('http://') && !addr.startsWith('https://')) {
-                // ngrok, cloudflare 도메인은 https 사용
-                if (addr.includes('ngrok') || addr.includes('trycloudflare.com') || addr.includes('.app') || addr.includes('.dev')) {
+                // 로컬호스트나 IP 주소가 아니면 기본적으로 HTTPS 시도
+                const isLocal = addr.includes('localhost') || addr.startsWith('127.') || addr.startsWith('192.')
+                if (!isLocal) {
                     targetAddress = `https://${addr}`
                 } else {
                     targetAddress = `http://${addr}`
                 }
             }
+
+            console.log(`📡 연결 시도: ${targetAddress}`)
 
             // 간단한 연결 테스트 (서버에 GET 요청)
             const res = await fetch(targetAddress, {
@@ -48,19 +51,25 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                     'ngrok-skip-browser-warning': 'true'
                 }
             })
+
+            console.log(`📡 연결 응답: ${res.status} ${res.statusText}`)
+
             if (res.ok) {
                 setAddress(targetAddress) // 전체 URL 저장
                 setStep('login')
                 setStatus('idle')
                 setMessage('')
             } else {
+                console.error('❌ 연결 실패 응답:', await res.text())
                 setStatus('error')
-                setMessage(t('errors.connectionFailed'))
+                setMessage(`${t('errors.connectionFailed')} (${res.status})`)
             }
-        } catch (e) {
+        } catch (e: any) {
+            console.error('❌ 연결 중 예외 발생:', e)
             setStatus('error')
-            setMessage(t('errors.connectionFailed'))
+            setMessage(`${t('errors.connectionFailed')} (${e.message || 'Network Error'})`)
         }
+
     }
 
     const handleLogin = async () => { // 로그인
