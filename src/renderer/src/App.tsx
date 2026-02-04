@@ -121,7 +121,7 @@ export default function App() {
     }
 
     if (view === 'LOGIN') {
-      return <LoginPage onLogin={handleLogin} />
+      return <LoginPage onLogin={handleLogin} onBack={() => setView('MODE_SELECT')} />
     }
 
     if (view === 'CREATE_PROJECT') {
@@ -155,6 +155,7 @@ export default function App() {
         onCreateClick={() => setView('CREATE_PROJECT')}
         onOpenEditor={handleOpenEditor}
         onOpenSettings={() => setView('SETTINGS')}
+        onLogout={() => setView('MODE_SELECT')}
       />
     )
   }

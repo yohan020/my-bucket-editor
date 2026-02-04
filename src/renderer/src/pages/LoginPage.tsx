@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next'
 
 interface Props {
     onLogin: (username: string) => void
+    onBack: () => void
 }
 
-export default function LoginPage({ onLogin }: Props) {
+export default function LoginPage({ onLogin, onBack }: Props) {
     const { t } = useTranslation()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -40,6 +41,13 @@ export default function LoginPage({ onLogin }: Props) {
                 />
                 {error && <p className="error-message">{error}</p>}
                 <button className="primary-btn full-width" onClick={handleLogin}>{t('common.login')}</button>
+                <button
+                    className="primary-btn full-width"
+                    onClick={onBack}
+                    style={{ marginTop: '10px', backgroundColor: '#555' }}
+                >
+                    {t('common.back')}
+                </button>
             </div>
         </div>
     )

@@ -16,6 +16,7 @@ interface Props {
     onCreateClick: () => void
     onOpenEditor: (project: Project) => void
     onOpenSettings: () => void
+    onLogout: () => void
 }
 
 export default function DashboardPage({
@@ -26,7 +27,8 @@ export default function DashboardPage({
     onDeleteProject,
     onCreateClick,
     onOpenEditor,
-    onOpenSettings
+    onOpenSettings,
+    onLogout
 }: Props) {
     const { t } = useTranslation()
     const { showAlert, showConfirm } = useModal()
@@ -95,6 +97,7 @@ export default function DashboardPage({
                 username={username}
                 onCreateClick={onCreateClick}
                 onSettingsClick={handleOpenSettings}
+                onLogout={onLogout}
             />
             <ProjectList
                 projects={projects}

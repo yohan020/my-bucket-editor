@@ -5,9 +5,10 @@ interface Props {
     username: string
     onCreateClick: () => void
     onSettingsClick: () => void
+    onLogout: () => void
 }
 
-export default function Header({ username, onCreateClick, onSettingsClick }: Props) {
+export default function Header({ username, onCreateClick, onSettingsClick, onLogout }: Props) {
     const { t } = useTranslation()
 
     return (
@@ -20,9 +21,18 @@ export default function Header({ username, onCreateClick, onSettingsClick }: Pro
                 <button
                     className="icon-btn"
                     onClick={onSettingsClick}
-                    style={{ marginRight: '10px', width: '40px', height: '40px', fontSize: '1.2rem' }}
+                    title={t('common.settings')}
+                    style={{ marginRight: '10px', width: '40px', height: '40px', fontSize: '1.2rem', cursor: 'pointer' }}
                 >
                     ⚙️
+                </button>
+                <button
+                    className="icon-btn"
+                    onClick={onLogout}
+                    title={t('common.logout')}
+                    style={{ marginRight: '10px', height: '40px', fontSize: '1.2rem', cursor: 'pointer', padding: '0 10px', display: 'flex', alignItems: 'center' }}
+                >
+                    🏠 <span style={{ fontSize: '0.9rem', marginLeft: '5px' }}>Home</span>
                 </button>
                 <button className="create-btn" onClick={onCreateClick}>+ {t('dashboard.createProject')}</button>
             </div>
