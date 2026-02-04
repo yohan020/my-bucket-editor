@@ -73,6 +73,7 @@
     "serverAddress": "Server Address",
     "email": "Email",
     "password": "Password",
+    "confirmPassword": "Confirm Password",
     "connect": "Connect",
     "connecting": "Connecting...",
     "connectionStatus": "Connection Status",
@@ -82,7 +83,18 @@
     "downloadProject": "Download",
     "recentServers": "Recent Servers",
     "noRecentServers": "No recent connections",
-    "directInput": "Enter manually"
+    "directInput": "Enter manually",
+    "registerTitle": "Request Access",
+    "noAccount": "Don't have an account? Request access",
+    "hasAccount": "Already have an account? Sign in",
+    "requestApproval": "Request Access",
+    "passwordMismatch": "Passwords do not match.",
+    "fillAllFields": "Please fill in all fields.",
+    "requestSent": "📨 Access request sent. Please log in again once the host approves.",
+    "pendingApproval": "⏳ Waiting for host approval.",
+    "accessRejected": "⛔ Access was rejected.",
+    "alreadyPending": "You have already requested access. Please wait for the host to approve.",
+    "alreadyRegistered": "This account is already registered. Please log in."
   },
   "time": {
     "justNow": "Just now",

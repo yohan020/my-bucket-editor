@@ -73,6 +73,7 @@
     "serverAddress": "서버 주소",
     "email": "이메일",
     "password": "비밀번호",
+    "confirmPassword": "비밀번호 확인",
     "connect": "접속하기",
     "connecting": "연결 중...",
     "connectionStatus": "연결 상태",
@@ -82,7 +83,18 @@
     "downloadProject": "다운로드",
     "recentServers": "최근 접속 서버",
     "noRecentServers": "최근 접속 기록이 없습니다",
-    "directInput": "직접 입력"
+    "directInput": "직접 입력",
+    "registerTitle": "승인 요청",
+    "noAccount": "계정이 없으신가요? 승인 요청하기",
+    "hasAccount": "이미 계정이 있으신가요? 로그인하기",
+    "requestApproval": "승인 요청",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "fillAllFields": "모든 필드를 입력해주세요.",
+    "requestSent": "📨 승인 요청을 보냈습니다. 호스트가 수락하면 다시 로그인하세요.",
+    "pendingApproval": "⏳ 호스트의 승인을 기다리는 중입니다.",
+    "accessRejected": "⛔ 접속이 거절되었습니다.",
+    "alreadyPending": "이미 승인 요청을 보냈습니다. 호스트가 수락할 때까지 기다려주세요.",
+    "alreadyRegistered": "이미 등록된 계정입니다. 로그인해주세요."
   },
   "time": {
     "justNow": "방금 전",

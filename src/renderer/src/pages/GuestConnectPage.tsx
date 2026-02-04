@@ -11,10 +11,11 @@ interface Props {
 export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const { t } = useTranslation()
     const [address, setAddress] = useState('')
-    const [step, setStep] = useState<'address' | 'login'>('address')
+    const [step, setStep] = useState<'address' | 'login' | 'register'>('address')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error'>('idle')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error' | 'success'>('idle')
     const [message, setMessage] = useState('')
     const [recentServers, setRecentServers] = useState<RecentServer[]>([])
 
@@ -51,6 +52,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                 setAddress(targetAddress) // 전체 URL 저장
                 setStep('login')
                 setStatus('idle')
+                setMessage('')
             } else {
                 setStatus('error')
                 setMessage(t('errors.connectionFailed'))
@@ -63,8 +65,8 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
 
     const handleLogin = async () => { // 로그인
         setStatus('loading')
+        setMessage('')
         try {
-            // address는 이미 handleConnect에서 정규화됨
             const res = await fetch(`${address}/api/login`, {
                 method: 'POST',
                 headers: {
@@ -80,12 +82,71 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                 addRecentServer(address, data.projectName)
                 onConnect(address, data.token, email, data.projectName || 'Unknown')
             } else {
-                setStatus(res.status === 202 ? 'pending' : 'error')
-                setMessage(data.message)
+                setStatus('error')
+                // 메시지 코드에 따른 번역
+                if (data.message === 'invalid_credentials' || data.message === 'user_not_found') {
+                    setMessage(t('errors.invalidCredentials'))
+                } else if (data.message === 'pending_approval') {
+                    setStatus('pending')
+                    setMessage(t('guest.pendingApproval'))
+                } else if (data.message === 'access_rejected') {
+                    setMessage(t('guest.accessRejected'))
+                } else {
+                    setMessage(data.message)
+                }
             }
         } catch (e) {
             setStatus('error')
-            setMessage(t('errors.invalidCredentials'))
+            setMessage(t('errors.networkError'))
+        }
+    }
+
+    const handleRegister = async () => { // 회원가입 (승인 요청)
+        // 비밀번호 확인
+        if (password !== confirmPassword) {
+            setStatus('error')
+            setMessage(t('guest.passwordMismatch'))
+            return
+        }
+
+        if (!email || !password) {
+            setStatus('error')
+            setMessage(t('guest.fillAllFields'))
+            return
+        }
+
+        setStatus('loading')
+        setMessage('')
+        try {
+            const res = await fetch(`${address}/api/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ email, password })
+            })
+            const data = await res.json()
+            if (res.ok && data.success) {
+                setStatus('success')
+                setMessage(t('guest.requestSent'))
+            } else {
+                setStatus('error')
+                // 메시지 코드에 따른 번역
+                if (data.message === 'already_pending') {
+                    setMessage(t('guest.alreadyPending'))
+                } else if (data.message === 'access_rejected') {
+                    setMessage(t('guest.accessRejected'))
+                } else if (data.message === 'already_registered') {
+                    setMessage(t('guest.alreadyRegistered'))
+                } else {
+                    setMessage(data.message)
+                }
+            }
+        } catch (e) {
+            setStatus('error')
+            setMessage(t('errors.networkError'))
         }
     }
 
@@ -98,6 +159,22 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const handleRecentClick = (addr: string) => {
         setAddress(addr)
         handleConnect(addr)
+    }
+
+    const goToRegister = () => {
+        setStep('register')
+        setStatus('idle')
+        setMessage('')
+        setPassword('')
+        setConfirmPassword('')
+    }
+
+    const goToLogin = () => {
+        setStep('login')
+        setStatus('idle')
+        setMessage('')
+        setPassword('')
+        setConfirmPassword('')
     }
 
     return (
@@ -167,7 +244,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                     </div>
                     {message && <p className="error-message">{message}</p>}
                 </>
-            ) : (
+            ) : step === 'login' ? (
                 <>
                     <h1>🔐 {t('login.title')}</h1>
                     <p>{t('guest.serverAddress')}: {address}</p>
@@ -183,6 +260,10 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     />
+                    {/* 회원가입 링크 */}
+                    <p className="register-link" onClick={goToRegister}>
+                        {t('guest.noAccount')}
+                    </p>
                     {message && (
                         <p className={status === 'pending' ? 'pending-message' : 'error-message'}>
                             {message}
@@ -197,6 +278,51 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                             {status === 'loading' ? `⏳ ${t('guest.connecting')}` : t('common.login')}
                         </button>
                         <button className="back-btn" onClick={() => setStep('address')}>
+                            ← {t('common.back')}
+                        </button>
+                    </div>
+                </>
+            ) : (
+                // 회원가입 (승인 요청) 페이지
+                <>
+                    <h1>📝 {t('guest.registerTitle')}</h1>
+                    <p>{t('guest.serverAddress')}: {address}</p>
+                    <input
+                        placeholder={t('guest.email')}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder={t('guest.password')}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder={t('guest.confirmPassword')}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                    />
+                    {/* 로그인 링크 */}
+                    <p className="register-link" onClick={goToLogin}>
+                        {t('guest.hasAccount')}
+                    </p>
+                    {message && (
+                        <p className={status === 'success' ? 'success-message' : 'error-message'}>
+                            {message}
+                        </p>
+                    )}
+                    <div className="buttons">
+                        <button
+                            className="connect-btn"
+                            onClick={handleRegister}
+                            disabled={status === 'loading'}
+                        >
+                            {status === 'loading' ? `⏳ ${t('guest.connecting')}` : `📨 ${t('guest.requestApproval')}`}
+                        </button>
+                        <button className="back-btn" onClick={goToLogin}>
                             ← {t('common.back')}
                         </button>
                     </div>

@@ -73,6 +73,7 @@
     "serverAddress": "サーバーアドレス",
     "email": "メール",
     "password": "パスワード",
+    "confirmPassword": "パスワード確認",
     "connect": "接続",
     "connecting": "接続中...",
     "connectionStatus": "接続状態",
@@ -82,7 +83,18 @@
     "downloadProject": "ダウンロード",
     "recentServers": "最近接続したサーバー",
     "noRecentServers": "最近の接続履歴がありません",
-    "directInput": "直接入力"
+    "directInput": "直接入力",
+    "registerTitle": "アクセス申請",
+    "noAccount": "アカウントがない方はこちら",
+    "hasAccount": "すでにアカウントをお持ちの方はこちら",
+    "requestApproval": "アクセス申請",
+    "passwordMismatch": "パスワードが一致しません。",
+    "fillAllFields": "すべての項目を入力してください。",
+    "requestSent": "📨 アクセス申請を送信しました。ホストが承認したら再度ログインしてください。",
+    "pendingApproval": "⏳ ホストの承認を待っています。",
+    "accessRejected": "⛔ アクセスが拒否されました。",
+    "alreadyPending": "すでにアクセス申請を送信しています。ホストが承認するまでお待ちください。",
+    "alreadyRegistered": "このアカウントはすでに登録されています。ログインしてください。"
   },
   "time": {
     "justNow": "たった今",
