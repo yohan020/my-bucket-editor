@@ -4,9 +4,9 @@ import { startTunnel, stopTunnel, getActiveUrl, getTunnelSettings, setTunnelSett
 
 export function registerTunnelHandlers(): void {
     // 터널 시작 (외부 URL 생성)
-    ipcMain.handle('tunnel:start', async (_, port: number) => {
+    ipcMain.handle('tunnel:start', async (_, port: number, projectName?: string) => {
         try {
-            const url = await startTunnel(port)
+            const url = await startTunnel(port, projectName)
             return { success: true, url }
         } catch (error: any) {
             return { success: false, error: error.message }

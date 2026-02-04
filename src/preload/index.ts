@@ -35,7 +35,7 @@ const api = {
   resetFocus: (): Promise<boolean> => ipcRenderer.invoke('window:resetFocus'),
 
   // === 터널(ngrok) 관련 API ===
-  startTunnel: (port: number): Promise<{ success: boolean; url?: string; error?: string }> => ipcRenderer.invoke('tunnel:start', port),
+  startTunnel: (port: number, projectName?: string): Promise<{ success: boolean; url?: string; error?: string }> => ipcRenderer.invoke('tunnel:start', port, projectName),
   stopTunnel: (port?: number): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('tunnel:stop', port),
   getTunnelUrl: (port?: number): Promise<string | null> => ipcRenderer.invoke('tunnel:getUrl', port),
   getTunnelSettings: (): Promise<{ service: string; ngrokAuthToken: string }> => ipcRenderer.invoke('tunnel:getSettings'),

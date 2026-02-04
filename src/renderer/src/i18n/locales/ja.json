@@ -28,8 +28,9 @@
     "ngrokFreePlanNote": "無料プランでは同時に1つのトンネルのみ作成可能です。",
     "cloudflareToken": "Cloudflare Tunnel トークン",
     "cloudflareTokenDesc": "Zero Trust ダッシュボードからトークンを入力してください。(空欄の場合はランダムな一時アドレスを使用)",
-    "cloudflareDomain": "カスタムドメイン",
-    "cloudflareDomainDesc": "トンネルに接続されたドメインを入力してください (例: https://editor.mydomain.com)",
+    "cloudflareDomain": "カスタムドメイン（任意）",
+    "cloudflareDomainDesc": "Tunnel Tokenに接続されたドメイン（例: editor.mydomain.com）",
+    "cloudflareWildcardHint": "マルチPJ: *.domain.comを入力 (Cloudflare設定: * → localhost:4000)",
     "stopServersFirst": "設定を変更するには、すべてのサーバーを停止してください。"
   },
   "modeSelect": {
