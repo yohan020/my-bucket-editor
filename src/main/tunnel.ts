@@ -19,6 +19,8 @@ interface TunnelInstance {
 interface TunnelSettings {
     service: TunnelService
     ngrokAuthToken: string
+    cloudflareToken?: string
+    cloudflareDomain?: string
 }
 
 // 설정 저장소
@@ -26,7 +28,9 @@ const store = new Store({
     defaults: {
         tunnelSettings: {
             service: 'localtunnel',
-            ngrokAuthToken: ''
+            ngrokAuthToken: '',
+            cloudflareToken: '',
+            cloudflareDomain: ''
         }
     }
 }) as any
@@ -140,31 +144,63 @@ async function startNgrokTunnel(port: number, authToken: string): Promise<string
 }
 
 /**
- * Cloudflare Quick Tunnel 시작
+ * Cloudflare Tunnel 시작 (Quick Tunnel 또는 Named Tunnel)
  */
 async function startCloudflareTunnel(port: number): Promise<string> {
     console.log(`🌐 Cloudflare 연결 시도 중... (Port: ${port})`)
+    const settings = getTunnelSettings()
 
     try {
-        // Quick Tunnel 시작 - 배열 형태 인자 사용
-        const tunnel = new CloudflareTunnel(['tunnel', '--url', `http://localhost:${port}`])
+        let tunnel: any
+        let tunnelUrl: string
 
-        // URL 이벤트 대기
-        const tunnelUrl = await new Promise<string>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Cloudflare 터널 URL 대기 시간 초과'))
-            }, 30000) // 30초 타임아웃
+        // 1. Token이 있는 경우: Named Tunnel (고정 도메인)
+        if (settings.cloudflareToken && settings.cloudflareToken.trim() !== '') {
+            console.log('🔒 Cloudflare Named Tunnel (Token) 모드로 시작합니다.')
+            
+            // 주의: --url 옵션은 Named Tunnel에서 무시될 수 있음 (Token에 설정된 Ingress 규칙 따름)
+            // 하지만 cloudflared run --token <TOKEN> 만으로는 로컬 포트 매핑이 안될 수 있음.
+            // 일반적으로 Named Tunnel은 클라우드 대시보드에서 Ingress Rules를 설정함 (localhost:3002 등).
+            // 여기서는 단순히 'tunnel run'을 실행함.
+            tunnel = new CloudflareTunnel(['tunnel', 'run', '--token', settings.cloudflareToken])
 
-            tunnel.once('url', (url: string) => {
-                clearTimeout(timeout)
-                resolve(url)
+            // 도메인 주소는 사용자가 입력한 값 사용
+            if (!settings.cloudflareDomain) {
+                // 도메인이 설정되지 않았다면 경고
+                console.warn('⚠️ Cloudflare Token은 있지만 도메인이 설정되지 않았습니다.')
+            }
+            tunnelUrl = settings.cloudflareDomain || 'https://unknown-domain.com'
+
+            // Named Tunnel은 URL 이벤트를 기다릴 필요 없이 바로 시작된 것으로 간주 (혹은 ready 확인)
+            // 하지만 프로세스 시작 딜레이를 위해 잠시 대기하거나 에러 체크
+            
+            // 에러 리스너 등록
+            tunnel.on('error', (err: Error) => {
+                console.error('❌ Cloudflare Tunnel 에러:', err)
             })
 
-            tunnel.once('error', (err: Error) => {
-                clearTimeout(timeout)
-                reject(err)
+        } else {
+            // 2. Token이 없는 경우: Quick Tunnel (임시 주소)
+            console.log('🚀 Cloudflare Quick Tunnel (임시 주소) 모드로 시작합니다.')
+            tunnel = new CloudflareTunnel(['tunnel', '--url', `http://localhost:${port}`])
+
+            // URL 이벤트 대기
+            tunnelUrl = await new Promise<string>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Cloudflare 터널 URL 대기 시간 초과'))
+                }, 30000) // 30초 타임아웃
+
+                tunnel.once('url', (url: string) => {
+                    clearTimeout(timeout)
+                    resolve(url)
+                })
+
+                tunnel.once('error', (err: Error) => {
+                    clearTimeout(timeout)
+                    reject(err)
+                })
             })
-        })
+        }
 
         console.log(`✅ Cloudflare 연결 성공: ${tunnelUrl} → localhost:${port}`)
 

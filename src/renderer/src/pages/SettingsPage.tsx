@@ -16,6 +16,8 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     // 터널 설정 상태
     const [tunnelService, setTunnelService] = useState<TunnelService>('localtunnel');
     const [ngrokAuthToken, setNgrokAuthToken] = useState('');
+    const [cloudflareToken, setCloudflareToken] = useState('');
+    const [cloudflareDomain, setCloudflareDomain] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -37,6 +39,8 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             const settings = await (window as any).api.getTunnelSettings();
             setTunnelService(settings.service);
             setNgrokAuthToken(settings.ngrokAuthToken || '');
+            setCloudflareToken(settings.cloudflareToken || '');
+            setCloudflareDomain(settings.cloudflareDomain || '');
         } catch (err) {
             console.error('Failed to get tunnel settings:', err);
         }
@@ -61,7 +65,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         try {
             await (window as any).api.setTunnelSettings({
                 service: tunnelService,
-                ngrokAuthToken: ngrokAuthToken
+                ngrokAuthToken,
+                cloudflareToken,
+                cloudflareDomain
             });
             showAlert({ message: t('settings.tunnelSaved'), type: 'success' });
         } catch (err) {
@@ -165,6 +171,57 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                                 </p>
                                 <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#f59e0b' }}>
                                     ⚠️ {t('settings.ngrokFreePlanNote')}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Cloudflare Token 입력 (cloudflare 선택 시만 표시) */}
+                        {tunnelService === 'cloudflare' && (
+                            <div style={{ marginTop: '15px' }}>
+                                {/* Token Input */}
+                                <label style={{ fontSize: '0.9rem', color: '#aaa' }}>{t('settings.cloudflareToken')}</label>
+                                <input
+                                    type="password"
+                                    value={cloudflareToken}
+                                    onChange={(e) => setCloudflareToken(e.target.value)}
+                                    placeholder="Cloudflare Tunnel Token (eyJh...)"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        marginTop: '5px',
+                                        backgroundColor: '#333',
+                                        color: '#eee',
+                                        border: '1px solid #444',
+                                        borderRadius: '4px',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                <p style={{ margin: '8px 0 15px', fontSize: '0.8rem', color: '#666' }}>
+                                    {t('settings.cloudflareTokenDesc')}
+                                </p>
+
+                                {/* Domain Input (Token이 있을 때만 활성화 권장하지만, 필수 입력으로 둠) */}
+                                <label style={{ fontSize: '0.9rem', color: '#aaa' }}>{t('settings.cloudflareDomain')}</label>
+                                <input
+                                    type="text"
+                                    value={cloudflareDomain}
+                                    onChange={(e) => setCloudflareDomain(e.target.value)}
+                                    placeholder="https://editor.mydomain.com"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        marginTop: '5px',
+                                        backgroundColor: '#333',
+                                        color: '#eee',
+                                        border: '1px solid #444',
+                                        borderRadius: '4px',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#666' }}>
+                                    {t('settings.cloudflareDomainDesc')}
                                 </p>
                             </div>
                         )}

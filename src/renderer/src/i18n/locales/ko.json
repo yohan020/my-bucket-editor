@@ -26,6 +26,10 @@
     "tunnelSaveFailed": "터널 설정 저장에 실패했습니다.",
     "ngrokHint": "ngrok.com에서 무료 계정을 만들고 authtoken을 복사하세요.",
     "ngrokFreePlanNote": "무료 플랜은 동시에 1개의 터널만 생성 가능합니다.",
+    "cloudflareToken": "Cloudflare 터널 토큰",
+    "cloudflareTokenDesc": "Zero Trust 대시보드에서 발급받은 토큰을 입력하세요. (비워두면 랜덤 임시 주소 사용)",
+    "cloudflareDomain": "사용자 지정 도메인",
+    "cloudflareDomainDesc": "터널에 연결된 도메인 주소를 입력하세요 (예: https://editor.mydomain.com)",
     "stopServersFirst": "설정을 변경하려면 먼저 모든 서버를 종료해주세요."
   },
   "modeSelect": {
