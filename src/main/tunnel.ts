@@ -267,6 +267,10 @@ async function startCloudflareTunnel(port: number, projectName: string): Promise
  * 터널 종료 (특정 포트)
  */
 export async function stopTunnel(port?: number): Promise<void> {
+    console.log(`🛑 stopTunnel Called! Port: ${port}`)
+    // 간단한 스택 트레이스 (누가 호출했는지 확인)
+    console.log(`🛑 Call Stack: ${(new Error()).stack?.split('\n').slice(1, 4).join('\n')}`)
+    
     if (port) {
         const instance = activeTunnels.get(port)
         if (instance) {
