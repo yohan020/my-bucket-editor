@@ -1,17 +1,19 @@
-// [터널 서비스] LocalTunnel + ngrok 지원
+// [터널 서비스] LocalTunnel + ngrok + Cloudflare 지원
 import localtunnel from 'localtunnel'
 import ngrok from '@ngrok/ngrok'
+import { Tunnel as CloudflareTunnel } from 'cloudflared'
 import ElectronStore from 'electron-store'
 
 // electron-store ESM 호환성 처리
 const Store = (ElectronStore as any).default || ElectronStore
 
-export type TunnelService = 'localtunnel' | 'ngrok'
+export type TunnelService = 'localtunnel' | 'ngrok' | 'cloudflare'
 
 interface TunnelInstance {
     type: TunnelService
     tunnel: any
     url: string
+    stop?: () => Promise<any> // Cloudflare용
 }
 
 interface TunnelSettings {
@@ -60,6 +62,8 @@ export async function startTunnel(port: number): Promise<string> {
     
     if (settings.service === 'ngrok') {
         return startNgrokTunnel(port, settings.ngrokAuthToken)
+    } else if (settings.service === 'cloudflare') {
+        return startCloudflareTunnel(port)
     } else {
         return startLocaltunnel(port)
     }
@@ -92,7 +96,6 @@ async function startLocaltunnel(port: number): Promise<string> {
         // 에러 이벤트 핸들링 (connection refused 등 무시)
         tunnel.on('error', (err: any) => {
             console.warn(`⚠️ LocalTunnel 에러 (무시됨):`, err?.message || err)
-            // 에러 발생 시 터널 정리
             activeTunnels.delete(port)
         })
 
@@ -137,6 +140,49 @@ async function startNgrokTunnel(port: number, authToken: string): Promise<string
 }
 
 /**
+ * Cloudflare Quick Tunnel 시작
+ */
+async function startCloudflareTunnel(port: number): Promise<string> {
+    console.log(`🌐 Cloudflare 연결 시도 중... (Port: ${port})`)
+
+    try {
+        // Quick Tunnel 시작 - 배열 형태 인자 사용
+        const tunnel = new CloudflareTunnel(['tunnel', '--url', `http://localhost:${port}`])
+
+        // URL 이벤트 대기
+        const tunnelUrl = await new Promise<string>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Cloudflare 터널 URL 대기 시간 초과'))
+            }, 30000) // 30초 타임아웃
+
+            tunnel.once('url', (url: string) => {
+                clearTimeout(timeout)
+                resolve(url)
+            })
+
+            tunnel.once('error', (err: Error) => {
+                clearTimeout(timeout)
+                reject(err)
+            })
+        })
+
+        console.log(`✅ Cloudflare 연결 성공: ${tunnelUrl} → localhost:${port}`)
+
+        activeTunnels.set(port, { 
+            type: 'cloudflare', 
+            tunnel: tunnel,
+            url: tunnelUrl,
+            stop: async () => tunnel.stop()
+        })
+
+        return tunnelUrl
+    } catch (error: any) {
+        console.error('❌ Cloudflare 연결 실패:', error)
+        throw new Error(error?.message || 'Cloudflare 터널 생성에 실패했습니다.')
+    }
+}
+
+/**
  * 터널 종료 (특정 포트)
  */
 export async function stopTunnel(port?: number): Promise<void> {
@@ -146,6 +192,8 @@ export async function stopTunnel(port?: number): Promise<void> {
             try {
                 if (instance.type === 'ngrok') {
                     await instance.tunnel.close()
+                } else if (instance.type === 'cloudflare' && instance.stop) {
+                    await instance.stop()
                 } else {
                     instance.tunnel.close()
                 }
@@ -160,6 +208,8 @@ export async function stopTunnel(port?: number): Promise<void> {
             try {
                 if (instance.type === 'ngrok') {
                     await instance.tunnel.close()
+                } else if (instance.type === 'cloudflare' && instance.stop) {
+                    await instance.stop()
                 } else {
                     instance.tunnel.close()
                 }

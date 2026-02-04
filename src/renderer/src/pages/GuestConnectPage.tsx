@@ -32,8 +32,8 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             // 주소 노멀라이제이션 (http/https 없으면 추가)
             let targetAddress = addr
             if (!addr.startsWith('http://') && !addr.startsWith('https://')) {
-                // ngrok 도메인은 https 사용
-                if (addr.includes('ngrok') || addr.includes('.app') || addr.includes('.dev')) {
+                // ngrok, cloudflare 도메인은 https 사용
+                if (addr.includes('ngrok') || addr.includes('trycloudflare.com') || addr.includes('.app') || addr.includes('.dev')) {
                     targetAddress = `https://${addr}`
                 } else {
                     targetAddress = `http://${addr}`

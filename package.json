@@ -26,6 +26,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@ngrok/ngrok": "^1.7.0",
     "adm-zip": "^0.5.16",
+    "cloudflared": "^0.7.1",
     "cors": "^2.8.5",
     "electron-store": "^11.0.2",
     "express": "^5.2.1",
