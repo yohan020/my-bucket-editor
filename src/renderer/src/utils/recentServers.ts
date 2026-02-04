@@ -5,6 +5,7 @@ const MAX_SERVERS = 4
 
 export interface RecentServer {
     address: string
+    projectName?: string // 프로젝트 이름
     lastConnected: number // timestamp
 }
 
@@ -24,7 +25,7 @@ export function getRecentServers(): RecentServer[] {
 /**
  * 최근 접속 서버 추가 (중복 시 업데이트, 최대 4개 유지)
  */
-export function addRecentServer(address: string): void {
+export function addRecentServer(address: string, projectName?: string): void {
     const servers = getRecentServers()
     
     // 이미 존재하면 제거 (나중에 맨 앞에 추가하기 위함)
@@ -33,6 +34,7 @@ export function addRecentServer(address: string): void {
     // 맨 앞에 추가
     filtered.unshift({
         address,
+        projectName,
         lastConnected: Date.now()
     })
     

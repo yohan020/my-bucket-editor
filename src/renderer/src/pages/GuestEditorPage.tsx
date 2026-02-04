@@ -30,10 +30,11 @@ interface Props {
     address: string
     token: string
     email: string
+    projectName: string
     onDisconnect: () => void
 }
 
-export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
+export default function GuestEditorPage({ address, token, email, projectName, onDisconnect }: Props) {
     const { t } = useTranslation()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
@@ -332,8 +333,8 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     return (
         <div className="guest-editor">
             <header className="editor-header">
-                <span>📝 Guest Editor</span>
-                <span className="current-file">{currentFile || t('editor.selectFile')}</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>📁 {projectName}</span>
+                <span className="current-file" style={{ color: '#aaa' }}>{currentFile || t('editor.selectFile')}</span>
                 <span>{isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('editor.disconnected')}`}</span>
                 {/* 유저 패널 토글 버튼 */}
                 <button
