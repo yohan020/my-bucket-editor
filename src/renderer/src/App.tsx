@@ -21,7 +21,7 @@ declare global {
       selectFolder: () => Promise<string | null>
       getProjects: () => Promise<Project[]>
       createProject: (project: Project) => Promise<boolean>
-      startServer: (port: number, projectPath: string) => Promise<{ success: boolean; message: string }>
+      startServer: (port: number, projectPath: string, projectName: string) => Promise<{ success: boolean; message: string }>
       stopServer: (port: number) => Promise<boolean>
       onGuestRequest: (callback: (data: { port: number; email: string }) => void) => () => void
       getFileTree: (dirPath: string) => Promise<any>
@@ -48,6 +48,7 @@ export default function App() {
   const [guestAddress, setGuestAddress] = useState('')
   const [guestToken, setGuestToken] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
+  const [guestProjectName, setGuestProjectName] = useState('')
   const [showCloseModal, setShowCloseModal] = useState(false)
 
   // useProjects 훅에서 모든 필요한 상태와 함수를 가져옴
@@ -91,10 +92,11 @@ export default function App() {
     if (view === "GUEST_CONNECT") {
       return (
         <GuestConnectPage
-          onConnect={(addr, token, email) => {
+          onConnect={(addr, token, email, projectName) => {
             setGuestAddress(addr)
             setGuestToken(token)
             setGuestEmail(email)
+            setGuestProjectName(projectName)
             setView('GUEST_EDITOR')
           }}
           onBack={() => setView('MODE_SELECT')}
@@ -108,6 +110,7 @@ export default function App() {
           address={guestAddress}
           token={guestToken}
           email={guestEmail}
+          projectName={guestProjectName}
           onDisconnect={() => setView('MODE_SELECT')}
         />
       )

@@ -35,7 +35,7 @@ export function useProjects() {
             }
             return { error: '서버 종료 실패' }
         } else {
-            const result = await window.api.startServer(project.port, project.path)
+            const result = await window.api.startServer(project.port, project.path, project.name)
             if (result.success) {
                 setActiveProjectIds(prev => [...prev, project.id])
                 return { started: true, port: project.port }

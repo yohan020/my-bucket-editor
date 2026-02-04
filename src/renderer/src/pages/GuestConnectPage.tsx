@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { getRecentServers, addRecentServer, removeRecentServer, formatRelativeTime, RecentServer } from '../utils/recentServers'
 
 interface Props {
-    onConnect: (address: string, token: string, email: string) => void
+    onConnect: (address: string, token: string, email: string, projectName: string) => void
     onBack: () => void
 }
 
@@ -77,8 +77,8 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             const data = await res.json()
             if (res.ok && data.success) {
                 // 로그인 성공 시 최근 서버에 추가
-                addRecentServer(address)
-                onConnect(address, data.token, email)
+                addRecentServer(address, data.projectName)
+                onConnect(address, data.token, email, data.projectName || 'Unknown')
             } else {
                 setStatus(res.status === 202 ? 'pending' : 'error')
                 setMessage(data.message)
@@ -119,15 +119,20 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                                         className="recent-server-item"
                                         onClick={() => handleRecentClick(server.address)}
                                     >
-                                        <span className="server-address">🌐 {server.address}</span>
-                                        <span className="server-time">{formatRelativeTime(server.lastConnected, t)}</span>
-                                        <button
-                                            className="remove-btn"
-                                            onClick={(e) => handleRemoveRecent(server.address, e)}
-                                            title={t('common.delete')}
-                                        >
-                                            ✕
-                                        </button>
+                                        <div className="server-info">
+                                            <span className="server-name">📁 {server.projectName || 'Unknown Project'}</span>
+                                            <span className="server-address">🌐 {server.address}</span>
+                                        </div>
+                                        <div className="server-meta">
+                                            <span className="server-time">{formatRelativeTime(server.lastConnected, t)}</span>
+                                            <button
+                                                className="remove-btn"
+                                                onClick={(e) => handleRemoveRecent(server.address, e)}
+                                                title={t('common.delete')}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

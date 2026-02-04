@@ -792,11 +792,14 @@ input:focus {
 .recent-servers-list {
   max-height: 180px;
   overflow-y: auto;
+  overflow-x: hidden;
+  /* 횡 스크롤 제거 */
 }
 
 .recent-server-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 12px 16px;
   cursor: pointer;
   transition: background 0.15s;
@@ -811,17 +814,48 @@ input:focus {
   background: #2a2d2e;
 }
 
-.recent-server-item .server-address {
+/* 서버 정보 (프로젝트 이름 + URL) */
+.recent-server-item .server-info {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  color: #4ec9b0;
+  min-width: 0;
+  /* flexbox 텍스트 오버플로우 방지 */
+  overflow: hidden;
+}
+
+.recent-server-item .server-name {
+  color: #e1e1e1;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-server-item .server-address {
+  color: #888;
   font-family: 'Consolas', monospace;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 메타 정보 (시간 + 삭제 버튼) */
+.recent-server-item .server-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 10px;
 }
 
 .recent-server-item .server-time {
   color: #666;
-  font-size: 0.75rem;
-  margin-right: 10px;
+  font-size: 0.7rem;
+  margin-right: 8px;
+  white-space: nowrap;
 }
 
 .recent-server-item .remove-btn {

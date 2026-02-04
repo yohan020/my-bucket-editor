@@ -14,7 +14,7 @@ import { getProjectZipBuffer } from '../backup';
 // 서버 시작 핸들러
 export function registerServerHandlers(): void {
     
-  ipcMain.handle('server:start', async (_, {port, projectPath}) => {
+  ipcMain.handle('server:start', async (_, {port, projectPath, projectName}) => {
     // 1. 이미 켜져 있다면 끄고 다시 시작
     if (servers.has(port)) {
       console.log('이미 실행 중인 서버가 있습니다. 재시작합니다')
@@ -77,7 +77,7 @@ export function registerServerHandlers(): void {
       })
 
       // Map에 저장
-      servers.set(port, {app, http: httpServer, io})
+      servers.set(port, {app, http: httpServer, io, projectName: projectName || 'Unknown Project'})
       
       return { success: true, message: '서버 시작 성공'}
     } catch (error) {

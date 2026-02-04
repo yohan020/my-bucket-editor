@@ -1,6 +1,6 @@
 // [인증 라우트] 게스트 로그인 API (/api/login) - 유저 인증 및 승인 요청 처리
 import { Router } from 'express'
-import { projectUsers } from '../index'
+import { projectUsers, servers } from '../index'
 import { User } from '../../types'
 import { generateToken } from '../utils/jwt'
 import { isApprovedUser } from '../../utils/userStore'
@@ -10,11 +10,13 @@ export function createAuthRouter(port: number): Router {
 
     router.post('/api/login', async (req, res) => {
         const {email, password} = req.body
+        const serverInstance = servers.get(port)
+        const projectName = serverInstance?.projectName || 'Unknown Project'
 
         // 영구 저장된 유저인지 확인 (해당 프로젝트/포트)
         if (await isApprovedUser(port, email, password)) {
             const token = generateToken({ email, port })
-            return res.json({ success: true, token })
+            return res.json({ success: true, token, projectName })
         }
 
         const users = projectUsers.get(port) || [];
