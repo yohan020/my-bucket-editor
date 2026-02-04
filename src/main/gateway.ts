@@ -51,7 +51,10 @@ export function startGatewayServer() {
 
     gatewayServer = http.createServer((req, res) => {
         const hostname = req.headers.host
+        console.log(`📡 [Gateway] Request: ${req.method} ${req.url} (Host: ${hostname})`)
+
         if (!hostname) {
+            console.error('❌ [Gateway] Missing Host Header')
             res.writeHead(400)
             res.end('Missing Host Header')
             return
@@ -72,20 +75,21 @@ export function startGatewayServer() {
         if (parts.length >= 3) {
             subdomain = parts[0].toLowerCase()
         } else {
+            console.warn(`⚠️ [Gateway] Cannot extract subdomain from host: ${hostname}`)
             // localhost:4000 같은 경우 서브도메인이 없음.
-            // 일단 'default' 또는 첫 번째 프로젝트로 연결? 
-            // 현재는 라우팅 실패로 처리.
         }
 
         // 프로젝트 맵에서 포트 찾기
         targetPort = projectMap.get(subdomain)
+        
+        console.log(`🔎 [Gateway] Routing '${subdomain}' -> Port ${targetPort || 'Not Found'}`)
 
         if (targetPort) {
             // 프록시 수행
             proxy.web(req, res, { target: `http://localhost:${targetPort}` })
         } else {
             res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
-            res.end(`<h1>My Bucket Gateway</h1><p>프로젝트를 찾을 수 없습니다: <b>${subdomain}</b></p>`)
+            res.end(`<h1>My Bucket Gateway</h1><p>프로젝트를 찾을 수 없습니다: <b>${subdomain}</b></p><p>Host: ${hostname}</p>`)
         }
     })
 

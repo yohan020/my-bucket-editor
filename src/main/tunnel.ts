@@ -162,7 +162,10 @@ async function startCloudflareTunnel(port: number, projectName: string): Promise
 
         // 1. 와일드카드 모드 (Gateway 사용)
         if (settings.cloudflareToken && isWildcard) {
-            console.log('🔒 Cloudflare Gateway Mode (Wildcard) 시작')
+            console.log('🔒 ===================================================')
+            console.log('🔒 Cloudflare Gateway Mode (Wildcard) Activated')
+            console.log(`🔒 Domain: ${domain}`)
+            console.log('🔒 ===================================================')
             
             // 1-1. 게이트웨이 서버 시작 (4000 포트)
             startGatewayServer()
