@@ -7,16 +7,19 @@ My Bucket Editorは、開発者がローカルフォルダをホストし、リ�
 ---
 
 ## 📸 スクリーンショット
+> **ホーム場面**
+> 
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/d6966551-975d-496c-b22d-9d24b635c451" />
 
-*(ここにスクリーンショットを追加してください)*
+
 > **設定画面**
 >
-> *(画像プレースホルダー)*
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/d97e7ab9-d315-42c1-a15f-6abb50d657e4" />
+
 
 > **エディタ画面**
 >
-> *(画像プレースホルダー)*
-
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/f2e244c6-8523-440d-9b2d-1d8ee5badbdc" />
 ---
 
 ## ✨ 主な機能
