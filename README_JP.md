@@ -32,7 +32,7 @@ My Bucket Editorは、開発者がローカルフォルダをホストし、リ�
 ### 🔒 強化されたセキュリティ (Enhanced Security)
 - **2要素認証 (2FA)**: TOTP (Google Authenticator, Authyなど) を使用してセッションを安全に保護します。
 - **ゲスト管理**: ホストはゲストの接続リクエストを直接承認または拒否できます。
-- **セキュアトンネリング**: **ngrok** および **localtunnel** を内蔵し、ローカルサーバーを外部と安全に共有できます。
+- **セキュアトンネリング**: **cloudflare**, **ngrok** および **localtunnel** を内蔵し、ローカルサーバーを外部と安全に共有できます。
 
 ### 🛠️ 開発者ツール
 - **ターミナル統合**: エディタ内で直接コマンドを実行できます。
@@ -80,7 +80,7 @@ My Bucket Editorは、開発者がローカルフォルダをホストし、リ�
 - **Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor/)
 - **Collaboration**: [Yjs](https://github.com/yjs/yjs), [Socket.io](https://socket.io/)
 - **Security**: `speakeasy` (TOTP), `qrcode`
-- **Tunneling**: `ngrok`, `localtunnel`
+- **Tunneling**: `cloudflare`, `ngrok`, `localtunnel`
 
 ---
 
