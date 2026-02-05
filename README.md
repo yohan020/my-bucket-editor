@@ -4,6 +4,8 @@
 
 My Bucket Editor는 개발자들이 자신의 로컬 폴더를 안전하게 호스팅하며 실시간으로 코드를 협업할 수 있도록 지원하는 강력한 데스크탑 애플리케이션입니다. 네이티브 앱의 성능과 클라우드 협업 도구의 유연성을 결합했습니다.
 
+[**JAPANESE README**](https://github.com/yohan020/my-bucket-editor/blob/main/README_JP.md)
+
 ---
 
 ## 📸 스크린샷
