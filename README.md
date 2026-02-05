@@ -7,15 +7,20 @@ My Bucket Editor는 개발자들이 자신의 로컬 폴더를 안전하게 호�
 ---
 
 ## 📸 스크린샷
+> **메인 화면**
+> 
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/d6966551-975d-496c-b22d-9d24b635c451" />
 
-*(이곳에 스크린샷을 추가하세요)*
+
 > **설정 화면**
 >
-> *(이미지 들어갈 공간)*
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/d97e7ab9-d315-42c1-a15f-6abb50d657e4" />
+
 
 > **에디터 인터페이스**
 >
-> *(이미지 들어갈 공간)*
+> <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/f2e244c6-8523-440d-9b2d-1d8ee5badbdc" />
+
 
 ---
 
