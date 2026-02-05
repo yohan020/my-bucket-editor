@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal } from '../contexts/ModalContext';
 
@@ -20,10 +20,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     const [cloudflareDomain, setCloudflareDomain] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
-        loadBackupPath();
-        loadTunnelSettings();
-    }, []);
+
 
     const loadBackupPath = async () => {
         try {
@@ -31,6 +28,107 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             setBackupPath(path);
         } catch (err) {
             console.error('Failed to get backup path:', err);
+        }
+    };
+
+    const [totpEnabled, setTotpEnabled] = useState(false);
+    const [totpStep, setTotpStep] = useState<'idle' | 'loading' | 'setup' | 'verify'>('idle');
+    const [totpSecret, setTotpSecret] = useState('');
+    const [totpQr, setTotpQr] = useState('');
+    const [totpCode, setTotpCode] = useState('');
+    const [setupAttempt, setSetupAttempt] = useState(0);
+    const totpInputRef = useRef<HTMLInputElement>(null);
+
+    // 강화된 포커스 로직: totpStep이 setup이 되면 포커스
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        if (totpStep === 'setup') {
+            const focusInput = async () => {
+                // 1. 현재 포커스된 요소 blur (버튼 등)
+                (document.activeElement as HTMLElement)?.blur();
+
+                // 2. Electron 윈도우 blur/focus 사이클 (alt-tab 효과)
+                await (window as any).api.refocusWindow();
+
+                // 3. input 포커스
+                if (totpInputRef.current) {
+                    totpInputRef.current.focus();
+                    console.log('✅ TOTP input focused via refocus');
+                }
+            };
+
+            // 충분한 지연 후 실행
+            timer = setTimeout(focusInput, 200);
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [totpStep, setupAttempt]);
+
+
+    useEffect(() => {
+        loadBackupPath();
+        loadTunnelSettings();
+        checkTotpStatus();
+    }, []);
+
+    const checkTotpStatus = async () => {
+        try {
+            const { enabled } = await (window as any).api.auth.getTotpStatus();
+            setTotpEnabled(enabled);
+        } catch (err) {
+            console.error('Failed to get TOTP status:', err);
+        }
+    };
+
+    const handleEnableTotpStart = async () => {
+        // 버튼 포커스 해제 (Electron 포커스 문제 방지)
+        (document.activeElement as HTMLElement)?.blur();
+
+        setTotpStep('loading');
+        setSetupAttempt(prev => prev + 1); // 카운터 증가로 새 key 생성
+        try {
+            const { success, secret, qrDataUrl } = await (window as any).api.auth.generateTotp();
+            if (success) {
+                setTotpSecret(secret);
+                setTotpQr(qrDataUrl);
+                setTotpCode('');
+                setTotpStep('setup');
+            } else {
+                setTotpStep('idle');
+            }
+        } catch (err) {
+            setTotpStep('idle');
+            showAlert({ message: '2FA 생성 실패', type: 'error' });
+        }
+    };
+
+    const handleVerifyAndEnableTotp = async () => {
+        try {
+            const { isValid } = await (window as any).api.auth.verifyTotpSetup({ token: totpCode, secret: totpSecret });
+            if (isValid) {
+                await (window as any).api.auth.enableTotp(totpSecret);
+                setTotpEnabled(true);
+                setTotpStep('idle');
+                showAlert({ message: '2FA가 활성화되었습니다!', type: 'success' });
+            } else {
+                showAlert({ message: '인증 코드가 올바르지 않습니다.', type: 'error' });
+            }
+        } catch (err) {
+            showAlert({ message: '2FA 활성화 실패', type: 'error' });
+        }
+    };
+
+    const handleDisableTotp = async () => {
+        if (!confirm('정말 2FA를 해제하시겠습니까?')) return;
+        try {
+            await (window as any).api.auth.disableTotp();
+            setTotpEnabled(false);
+            showAlert({ message: '2FA가 해제되었습니다.', type: 'info' });
+        } catch (err) {
+            showAlert({ message: '해제 실패', type: 'error' });
         }
     };
 
@@ -258,6 +356,76 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                             </button>
                         </div>
                     </div>
+                    {/* 2차 인증 (2FA) */}
+                    <div className="settings-group">
+                        <label>🔒 2단계 인증 (Google Authenticator)</label>
+                        <div style={{ marginTop: '10px', backgroundColor: '#333', padding: '15px', borderRadius: '6px' }}>
+                            {totpEnabled ? (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: '#4ec9b0', fontWeight: 'bold' }}>✅ 사용 중 (Active)</span>
+                                    <button
+                                        className="action-btn secondary"
+                                        onClick={handleDisableTotp}
+                                        style={{ backgroundColor: '#e51400', color: 'white' }}
+                                    >
+                                        해제
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    {totpStep === 'idle' ? (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ color: '#888', fontSize: '0.9rem' }}>계정을 더 안전하게 보호하세요.</span>
+                                            <button
+                                                className="action-btn primary"
+                                                onClick={handleEnableTotpStart}
+                                            >
+                                                설정하기
+                                            </button>
+                                        </div>
+                                    ) : totpStep === 'loading' ? (
+                                        <div style={{ textAlign: 'center', padding: '20px', color: '#aaa' }}>
+                                            잠시만 기다려주세요...
+                                        </div>
+                                    ) : (
+                                        <div key="setup-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#ccc' }}>QR 코드를 스캔하고 인증번호를 입력하세요.</p>
+                                            <img src={totpQr} alt="QR Code" style={{ borderRadius: '4px', border: '5px solid white' }} />
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <input
+                                                    key={`totp-input-${setupAttempt}`}
+                                                    ref={totpInputRef}
+                                                    type="text"
+                                                    autoFocus
+                                                    placeholder="123456"
+                                                    value={totpCode}
+                                                    onChange={(e) => setTotpCode(e.target.value)}
+                                                    onClick={async (e) => {
+                                                        // Electron 윈도우 blur/focus 사이클 (alt-tab 효과)
+                                                        await (window as any).api.refocusWindow();
+                                                        (e.target as HTMLInputElement).focus();
+                                                    }}
+                                                    style={{
+                                                        width: '120px', textAlign: 'center', fontSize: '1.2rem', letterSpacing: '2px',
+                                                        padding: '8px', borderRadius: '4px', border: '1px solid #555',
+                                                        backgroundColor: '#222', color: 'white', outline: 'none'
+                                                    }}
+                                                    maxLength={6}
+                                                />
+                                                <button className="action-btn primary" onClick={handleVerifyAndEnableTotp}>
+                                                    확인
+                                                </button>
+                                                <button className="action-btn secondary" onClick={() => setTotpStep('idle')}>
+                                                    취소
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                 </div>
 
                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>

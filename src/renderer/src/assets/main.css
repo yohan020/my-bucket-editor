@@ -694,6 +694,8 @@ input:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 10px;
   padding: 40px 50px;
   background: #252526;
@@ -1869,4 +1871,110 @@ button:disabled {
 .custom-modal .modal-btn.cancel:hover {
   background: #4a4a4a;
   color: #fff;
+}
+
+/* --- 설정 페이지 (Settings Page) --- */
+.settings-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.settings-card {
+  background-color: #252526;
+  border-radius: 8px;
+  border: 1px solid #454545;
+  /* 얇은 테두리 추가 */
+  width: 500px;
+  /* 원래 너비로 복귀 */
+  max-width: 95vw;
+  /* 모바일 대응도 넉넉하게 */
+  max-height: 90vh;
+  /* 높이도 조금 더 여유있게 */
+  /* 세로 높이 제한 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  /* 그림자 약하게 */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  /* 자식 요소 스크롤을 위해 */
+}
+
+.settings-header {
+  padding: 10px 15px;
+  /* 패딩 더 축소 */
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  /* 헤더 줄어들지 않음 */
+}
+
+.settings-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-header .close-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.settings-header .close-btn:hover {
+  color: #fff;
+}
+
+.settings-body {
+  padding: 10px 15px;
+  /* 패딩 더 축소 */
+  overflow-y: auto;
+  /* 내용 넘칠 시 스크롤 */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* 간격 축소 */
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.settings-group label {
+  color: #ccc;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+/* 스크롤바 커스텀 */
+.settings-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-body::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.settings-body::-webkit-scrollbar-track {
+  background: transparent;
 }
