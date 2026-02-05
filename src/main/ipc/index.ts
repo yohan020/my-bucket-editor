@@ -7,6 +7,8 @@ import { registerProjectHandlers } from "./project.handler";
 import { registerFileHandlers } from "./file.handler";
 import { registerWindowHandlers } from "./window.handler";
 import { registerTunnelHandlers } from "./tunnel.handler";
+import { registerBackupHandlers } from "./backup.handler";
+import { registerAuthHandler } from "./auth.handler";
 
 export function registerAllHandlers(): void {
     registerDialogHandlers()
@@ -16,6 +18,8 @@ export function registerAllHandlers(): void {
     registerFileHandlers()
     registerWindowHandlers()
     registerTunnelHandlers()
+    registerBackupHandlers()
+    registerAuthHandler()
     
     // 클립보드 핸들러
     const { clipboard } = require('electron')

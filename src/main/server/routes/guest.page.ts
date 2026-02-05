@@ -5,7 +5,7 @@ import { Router } from 'express'
 export function createGuestRouter(): Router {
     const router = Router()
 
-    router.get('/', (req, res) => {
+    router.get('/', (_req, res) => {
         res.send(`
           <!DOCTYPE html>
           <html lang="ko">

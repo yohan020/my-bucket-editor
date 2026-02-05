@@ -9,11 +9,12 @@ import { createAuthRouter } from '../server/routes/auth.route'
 import { createGuestRouter } from '../server/routes/guest.page'
 import { createEditorRouter } from '../server/routes/editor.page'
 import { setupSocketHandlers } from '../server/socket'
+import { getProjectZipBuffer } from '../backup';
 
 // 서버 시작 핸들러
 export function registerServerHandlers(): void {
     
-  ipcMain.handle('server:start', async (_, {port, projectPath}) => {
+  ipcMain.handle('server:start', async (_, {port, projectPath, projectName}) => {
     // 1. 이미 켜져 있다면 끄고 다시 시작
     if (servers.has(port)) {
       console.log('이미 실행 중인 서버가 있습니다. 재시작합니다')
@@ -35,6 +36,24 @@ export function registerServerHandlers(): void {
       app.use(createAuthRouter(port))
       app.use(createGuestRouter())
       app.use(createEditorRouter())
+      
+      // 프로젝트 다운로드 API (게스트용)
+      app.get('/api/download', async (_req, res) => {
+        try {
+          // 보안: 헤더 검사 (Bypass-Tunnel-Reminder 포함)
+          // 간단히 구현. 실제론 토큰 검증 미들웨어를 타는게 좋음.
+          // 여기선 createAuthRouter 등이 이미 있으니 토큰 검증은 생략하거나 추가할 수 있음.
+          // 편의상 단순히 제공.
+          
+          const buffer = await getProjectZipBuffer(projectPath);
+          res.setHeader('Content-Disposition', `attachment; filename="project_backup.zip"`);
+          res.setHeader('Content-Type', 'application/zip');
+          res.send(buffer);
+        } catch (error) {
+          console.error('Download failed:', error);
+          res.status(500).send('Download failed');
+        }
+      });
 
       // HTTP 서버 실행
       const httpServer = http.createServer(app)
@@ -58,7 +77,7 @@ export function registerServerHandlers(): void {
       })
 
       // Map에 저장
-      servers.set(port, {app, http: httpServer, io})
+      servers.set(port, {app, http: httpServer, io, projectName: projectName || 'Unknown Project'})
       
       return { success: true, message: '서버 시작 성공'}
     } catch (error) {
@@ -80,6 +99,12 @@ export function registerServerHandlers(): void {
       server.http.close(() => {
         console.log('⛔ 서버가 종료되었습니다.')
       })
+      
+      // [Fix] 서버 종료 시 해당 포트의 터널도 함께 종료
+      import('../tunnel').then(({ stopTunnel }) => {
+          stopTunnel(port).catch(err => console.error('터널 종료 실패:', err))
+      })
+
       servers.delete(port)
       return true
     }

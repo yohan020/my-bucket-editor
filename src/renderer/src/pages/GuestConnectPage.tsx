@@ -1,75 +1,189 @@
 // [Guest 연결 페이지] Host IP:Port 입력하여 연결
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getRecentServers, addRecentServer, removeRecentServer, formatRelativeTime, RecentServer } from '../utils/recentServers'
 
 interface Props {
-    onConnect: (address: string, token: string, email: string) => void
+    onConnect: (address: string, token: string, email: string, projectName: string) => void
     onBack: () => void
 }
 
 export default function GuestConnectPage({ onConnect, onBack }: Props) {
     const { t } = useTranslation()
     const [address, setAddress] = useState('')
-    const [step, setStep] = useState<'address' | 'login'>('address')
+    const [step, setStep] = useState<'address' | 'login' | 'register'>('address')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error'>('idle')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [status, setStatus] = useState<'idle' | 'loading' | 'pending' | 'error' | 'success'>('idle')
     const [message, setMessage] = useState('')
+    const [recentServers, setRecentServers] = useState<RecentServer[]>([])
 
+    // 최근 서버 목록 로드
+    useEffect(() => {
+        setRecentServers(getRecentServers())
+    }, [])
 
-    const handleConnect = async () => {
+    const handleConnect = async (targetAddr?: string) => {
+        const addr = targetAddr || address
+        if (!addr) return
+
         setStatus('loading')
         try {
-            // 주소 노멀라이제이션 (http/https 없으면 http:// 추가)
-            let targetAddress = address
-            if (!address.startsWith('http://') && !address.startsWith('https://')) {
-                targetAddress = `http://${address}`
+            // 주소 노멀라이제이션 (http/https 없으면 추가)
+            let targetAddress = addr
+            if (!addr.startsWith('http://') && !addr.startsWith('https://')) {
+                // 로컬호스트나 IP 주소가 아니면 기본적으로 HTTPS 시도
+                const isLocal = addr.includes('localhost') || addr.startsWith('127.') || addr.startsWith('192.')
+                if (!isLocal) {
+                    targetAddress = `https://${addr}`
+                } else {
+                    targetAddress = `http://${addr}`
+                }
             }
+
+            console.log(`📡 연결 시도: ${targetAddress}`)
 
             // 간단한 연결 테스트 (서버에 GET 요청)
             const res = await fetch(targetAddress, {
-                headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                headers: {
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
+                }
             })
+
+            console.log(`📡 연결 응답: ${res.status} ${res.statusText}`)
+
             if (res.ok) {
+                setAddress(targetAddress) // 전체 URL 저장
                 setStep('login')
                 setStatus('idle')
+                setMessage('')
             } else {
+                console.error('❌ 연결 실패 응답:', await res.text())
                 setStatus('error')
-                setMessage(t('errors.connectionFailed'))
+                setMessage(`${t('errors.connectionFailed')} (${res.status})`)
             }
-        } catch (e) {
+        } catch (e: any) {
+            console.error('❌ 연결 중 예외 발생:', e)
             setStatus('error')
-            setMessage(t('errors.connectionFailed'))
+            setMessage(`${t('errors.connectionFailed')} (${e.message || 'Network Error'})`)
         }
+
     }
 
     const handleLogin = async () => { // 로그인
         setStatus('loading')
+        setMessage('')
         try {
-            let targetAddress = address
-            if (!address.startsWith('http://') && !address.startsWith('https://')) {
-                targetAddress = `http://${address}`
-            }
-
-            const res = await fetch(`${targetAddress}/api/login`, {
+            const res = await fetch(`${address}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true'
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({ email, password })
             })
             const data = await res.json()
             if (res.ok && data.success) {
-                onConnect(address, data.token, email)
+                // 로그인 성공 시 최근 서버에 추가
+                addRecentServer(address, data.projectName)
+                onConnect(address, data.token, email, data.projectName || 'Unknown')
             } else {
-                setStatus(res.status === 202 ? 'pending' : 'error')
-                setMessage(data.message)
+                setStatus('error')
+                // 메시지 코드에 따른 번역
+                if (data.message === 'invalid_credentials' || data.message === 'user_not_found') {
+                    setMessage(t('errors.invalidCredentials'))
+                } else if (data.message === 'pending_approval') {
+                    setStatus('pending')
+                    setMessage(t('guest.pendingApproval'))
+                } else if (data.message === 'access_rejected') {
+                    setMessage(t('guest.accessRejected'))
+                } else {
+                    setMessage(data.message)
+                }
             }
         } catch (e) {
             setStatus('error')
-            setMessage(t('errors.invalidCredentials'))
+            setMessage(t('errors.networkError'))
         }
+    }
+
+    const handleRegister = async () => { // 회원가입 (승인 요청)
+        // 비밀번호 확인
+        if (password !== confirmPassword) {
+            setStatus('error')
+            setMessage(t('guest.passwordMismatch'))
+            return
+        }
+
+        if (!email || !password) {
+            setStatus('error')
+            setMessage(t('guest.fillAllFields'))
+            return
+        }
+
+        setStatus('loading')
+        setMessage('')
+        try {
+            const res = await fetch(`${address}/api/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ email, password })
+            })
+            const data = await res.json()
+            if (res.ok && data.success) {
+                setStatus('success')
+                setMessage(t('guest.requestSent'))
+            } else {
+                setStatus('error')
+                // 메시지 코드에 따른 번역
+                if (data.message === 'already_pending') {
+                    setMessage(t('guest.alreadyPending'))
+                } else if (data.message === 'access_rejected') {
+                    setMessage(t('guest.accessRejected'))
+                } else if (data.message === 'already_registered') {
+                    setMessage(t('guest.alreadyRegistered'))
+                } else {
+                    setMessage(data.message)
+                }
+            }
+        } catch (e) {
+            setStatus('error')
+            setMessage(t('errors.networkError'))
+        }
+    }
+
+    const handleRemoveRecent = (addr: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        removeRecentServer(addr)
+        setRecentServers(getRecentServers())
+    }
+
+    const handleRecentClick = (addr: string) => {
+        setAddress(addr)
+        handleConnect(addr)
+    }
+
+    const goToRegister = () => {
+        setStep('register')
+        setStatus('idle')
+        setMessage('')
+        setPassword('')
+        setConfirmPassword('')
+    }
+
+    const goToLogin = () => {
+        setStep('login')
+        setStatus('idle')
+        setMessage('')
+        setPassword('')
+        setConfirmPassword('')
     }
 
     return (
@@ -77,6 +191,47 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
             {step === 'address' ? (
                 <>
                     <h1>👤 {t('modeSelect.guest')}</h1>
+
+                    {/* 최근 접속 서버 목록 */}
+                    {recentServers.length > 0 && (
+                        <div className="recent-servers">
+                            <div className="recent-servers-header">
+                                📌 {t('guest.recentServers')}
+                            </div>
+                            <div className="recent-servers-list">
+                                {recentServers.map(server => (
+                                    <div
+                                        key={server.address}
+                                        className="recent-server-item"
+                                        onClick={() => handleRecentClick(server.address)}
+                                    >
+                                        <div className="server-info">
+                                            <span className="server-name">📁 {server.projectName || 'Unknown Project'}</span>
+                                            <span className="server-address">🌐 {server.address}</span>
+                                        </div>
+                                        <div className="server-meta">
+                                            <span className="server-time">{formatRelativeTime(server.lastConnected, t)}</span>
+                                            <button
+                                                className="remove-btn"
+                                                onClick={(e) => handleRemoveRecent(server.address, e)}
+                                                title={t('common.delete')}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 구분선 */}
+                    {recentServers.length > 0 && (
+                        <div className="divider">
+                            <span>{t('guest.directInput')}</span>
+                        </div>
+                    )}
+
                     <p>{t('guest.serverAddress')}</p>
                     <input
                         placeholder="192.168.0.10:3002"
@@ -87,7 +242,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                     <div className="buttons">
                         <button
                             className="connect-btn"
-                            onClick={handleConnect}
+                            onClick={() => handleConnect()}
                             disabled={status === 'loading'}
                         >
                             {status === 'loading' ? `⏳ ${t('guest.connecting')}` : `🔗 ${t('guest.connect')}`}
@@ -98,7 +253,7 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                     </div>
                     {message && <p className="error-message">{message}</p>}
                 </>
-            ) : (
+            ) : step === 'login' ? (
                 <>
                     <h1>🔐 {t('login.title')}</h1>
                     <p>{t('guest.serverAddress')}: {address}</p>
@@ -114,6 +269,10 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     />
+                    {/* 회원가입 링크 */}
+                    <p className="register-link" onClick={goToRegister}>
+                        {t('guest.noAccount')}
+                    </p>
                     {message && (
                         <p className={status === 'pending' ? 'pending-message' : 'error-message'}>
                             {message}
@@ -128,6 +287,51 @@ export default function GuestConnectPage({ onConnect, onBack }: Props) {
                             {status === 'loading' ? `⏳ ${t('guest.connecting')}` : t('common.login')}
                         </button>
                         <button className="back-btn" onClick={() => setStep('address')}>
+                            ← {t('common.back')}
+                        </button>
+                    </div>
+                </>
+            ) : (
+                // 회원가입 (승인 요청) 페이지
+                <>
+                    <h1>📝 {t('guest.registerTitle')}</h1>
+                    <p>{t('guest.serverAddress')}: {address}</p>
+                    <input
+                        placeholder={t('guest.email')}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder={t('guest.password')}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder={t('guest.confirmPassword')}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                    />
+                    {/* 로그인 링크 */}
+                    <p className="register-link" onClick={goToLogin}>
+                        {t('guest.hasAccount')}
+                    </p>
+                    {message && (
+                        <p className={status === 'success' ? 'success-message' : 'error-message'}>
+                            {message}
+                        </p>
+                    )}
+                    <div className="buttons">
+                        <button
+                            className="connect-btn"
+                            onClick={handleRegister}
+                            disabled={status === 'loading'}
+                        >
+                            {status === 'loading' ? `⏳ ${t('guest.connecting')}` : `📨 ${t('guest.requestApproval')}`}
+                        </button>
+                        <button className="back-btn" onClick={goToLogin}>
                             ← {t('common.back')}
                         </button>
                     </div>

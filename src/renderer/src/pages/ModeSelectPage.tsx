@@ -19,12 +19,12 @@ export default function ModeSelectPage({ onSelectHost, onSelectGuest }: Props) {
             <p>{t('modeSelect.selectMode')}</p>
 
             <div className="mode-buttons">
-                <button onClick={onSelectHost} className="mode-btn host">
+                <button onClick={onSelectHost} className="mode-btn host" style={{ width: '360px' }}>
                     🖥️ {t('modeSelect.host')}
                     <span>{t('modeSelect.hostDesc')}</span>
                 </button>
 
-                <button onClick={onSelectGuest} className="mode-btn guest">
+                <button onClick={onSelectGuest} className="mode-btn guest" style={{ width: '360px' }}>
                     👤 {t('modeSelect.guest')}
                     <span>{t('modeSelect.guestDesc')}</span>
                 </button>

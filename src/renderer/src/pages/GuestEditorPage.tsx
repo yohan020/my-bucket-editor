@@ -10,6 +10,7 @@ import { Awareness } from 'y-protocols/awareness'
 import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awareness'
 import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
+import { useModal } from '../contexts/ModalContext'
 
 const editorOptions = {
     automaticLayout: true,
@@ -29,10 +30,11 @@ interface Props {
     address: string
     token: string
     email: string
+    projectName: string
     onDisconnect: () => void
 }
 
-export default function GuestEditorPage({ address, token, email, onDisconnect }: Props) {
+export default function GuestEditorPage({ address, token, email, projectName, onDisconnect }: Props) {
     const { t } = useTranslation()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
@@ -312,15 +314,17 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     if (isLoading) {
         return (
             <div className="guest-editor loading-screen">
-                <div>🔄 {t('guest.connecting')} ({address})</div>
+                <div className="spinner"></div>
+                <div>{t('guest.connecting')} ({address})</div>
                 <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#888' }}>
                     {t('guest.connectionStatus')}: {isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('guest.waitingConnection')}`}
                 </div>
                 <button
-                    style={{ marginTop: '20px', padding: '10px 20px' }}
+                    className="secondary-btn"
+                    style={{ marginTop: '30px' }}
                     onClick={onDisconnect}
                 >
-                    ← {t('common.back')}
+                    {t('common.back')}
                 </button>
             </div>
         )
@@ -329,8 +333,8 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
     return (
         <div className="guest-editor">
             <header className="editor-header">
-                <span>📝 Guest Editor</span>
-                <span className="current-file">{currentFile || t('editor.selectFile')}</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>📁 {projectName}</span>
+                <span className="current-file" style={{ color: '#aaa' }}>{currentFile || t('editor.selectFile')}</span>
                 <span>{isConnected ? `🟢 ${t('editor.connected')}` : `🔴 ${t('editor.disconnected')}`}</span>
                 {/* 유저 패널 토글 버튼 */}
                 <button
@@ -339,11 +343,57 @@ export default function GuestEditorPage({ address, token, email, onDisconnect }:
                 >
                     👥 {onlineUsers.length}
                 </button>
-                <button className="back-btn" onClick={onDisconnect}>{t('editor.disconnect')}</button>
+                <button
+                    className="toggle-panel-btn"
+                    onClick={async () => {
+                        let targetAddress = address
+                        if (!address.startsWith('http://') && !address.startsWith('https://')) {
+                            targetAddress = `http://${address}`
+                        }
+
+                        try {
+                            const response = await fetch(`${targetAddress}/api/download`, {
+                                headers: {
+                                    'Bypass-Tunnel-Reminder': 'true'
+                                }
+                            })
+
+                            if (!response.ok) throw new Error('Download failed')
+
+                            const blob = await response.blob()
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = 'project_backup.zip'
+                            document.body.appendChild(a)
+                            a.click()
+                            window.URL.revokeObjectURL(url)
+                            document.body.removeChild(a)
+                        } catch (error) {
+                            console.error('Download error:', error)
+                            alert(t('errors.networkError'))
+                        }
+                    }}
+                    title={t('guest.downloadProject')}
+                    style={{ fontSize: '0.85rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', height: '32px' }}
+                >
+                    📥 {t('guest.downloadProject')}
+                </button>
+                <button className="back-btn" onClick={onDisconnect} style={{ height: '32px', padding: '6px 12px' }}>{t('editor.disconnect')}</button>
             </header>
             <div className="editor-main">
                 <aside className="file-tree">
-                    <div className="sidebar-header">{t('editor.fileExplorer')}</div>
+                    <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{t('editor.fileExplorer')}</span>
+                        <button
+                            className="icon-btn"
+                            onClick={() => socketRef.current?.emit('file:tree')}
+                            title="Reload"
+                            style={{ fontSize: '0.9rem', padding: '2px 5px' }}
+                        >
+                            🔄
+                        </button>
+                    </div>
                     <FileTree tree={fileTree} onFileClick={handleFileClick} />
                 </aside>
                 <main className="editor-container">

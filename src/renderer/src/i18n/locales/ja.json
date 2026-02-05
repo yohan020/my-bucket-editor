@@ -12,6 +12,27 @@
     "settings": "設定",
     "language": "言語"
   },
+  "settings": {
+    "title": "設定",
+    "backupPathLabel": "バックアップパス設定",
+    "backupPathDesc": "プロジェクトバックアップファイルの保存場所を指定します。",
+    "noPath": "パス未設定",
+    "change": "変更",
+    "pathChanged": "バックアップパスが変更されました。",
+    "pathChangeFailed": "バックアップパスの変更に失敗しました。",
+    "tunnelService": "トンネルサービス",
+    "tunnelServiceDesc": "外部共有に使用するトンネルサービスを選択します。",
+    "tunnelSaved": "トンネル設定が保存されました。",
+    "tunnelSaveFailed": "トンネル設定の保存に失敗しました。",
+    "ngrokHint": "ngrok.comで無料アカウントを作成し、authtokenをコピーしてください。",
+    "ngrokFreePlanNote": "無料プランでは同時に1つのトンネルのみ作成可能です。",
+    "cloudflareToken": "Cloudflare Tunnel トークン",
+    "cloudflareTokenDesc": "Zero Trust ダッシュボードからトークンを入力してください。(空欄の場合はランダムな一時アドレスを使用)",
+    "cloudflareDomain": "カスタムドメイン（任意）",
+    "cloudflareDomainDesc": "Tunnel Tokenに接続されたドメイン（例: editor.mydomain.com）",
+    "cloudflareWildcardHint": "マルチPJ: *.domain.comを入力 (Cloudflare設定: * → localhost:4000)",
+    "stopServersFirst": "設定を変更するには、すべてのサーバーを停止してください。"
+  },
   "modeSelect": {
     "title": "My Bucket Editor",
     "selectMode": "モードを選択してください",
@@ -32,7 +53,8 @@
     "serverRunning": "サーバー実行中",
     "serverStopped": "サーバー停止中",
     "port": "ポート",
-    "path": "パス"
+    "path": "パス",
+    "serverStartRequired": "サーバーを起動してから接続してください。"
   },
   "createProject": {
     "title": "新規プロジェクト作成",
@@ -56,12 +78,34 @@
     "serverAddress": "サーバーアドレス",
     "email": "メール",
     "password": "パスワード",
+    "confirmPassword": "パスワード確認",
     "connect": "接続",
     "connecting": "接続中...",
     "connectionStatus": "接続状態",
     "waitingConnection": "接続待機中",
     "serverShutdown": "ホストがサーバーを終了しました。",
-    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。"
+    "serverShutdownWithSave": "ホストがサーバーを終了しました。作業内容が保存されました。",
+    "downloadProject": "ダウンロード",
+    "recentServers": "最近接続したサーバー",
+    "noRecentServers": "最近の接続履歴がありません",
+    "directInput": "直接入力",
+    "registerTitle": "アクセス申請",
+    "noAccount": "アカウントがない方はこちら",
+    "hasAccount": "すでにアカウントをお持ちの方はこちら",
+    "requestApproval": "アクセス申請",
+    "passwordMismatch": "パスワードが一致しません。",
+    "fillAllFields": "すべての項目を入力してください。",
+    "requestSent": "📨 アクセス申請を送信しました。ホストが承認したら再度ログインしてください。",
+    "pendingApproval": "⏳ ホストの承認を待っています。",
+    "accessRejected": "⛔ アクセスが拒否されました。",
+    "alreadyPending": "すでにアクセス申請を送信しています。ホストが承認するまでお待ちください。",
+    "alreadyRegistered": "このアカウントはすでに登録されています。ログインしてください。"
+  },
+  "time": {
+    "justNow": "たった今",
+    "minutesAgo": "{n}分前",
+    "hoursAgo": "{n}時間前",
+    "daysAgo": "{n}日前"
   },
   "userManage": {
     "title": "ユーザー管理",
@@ -93,5 +137,31 @@
     "disableExternal": "共有停止",
     "copied": "コピー完了!",
     "connecting": "接続中..."
+  },
+  "backup": {
+    "title": "バックアップ管理",
+    "button": "バックアップ",
+    "create": "新規バックアップ作成",
+    "restore": "復元",
+    "delete": "削除",
+    "empty": "作成されたバックアップがありません。",
+    "confirmCreate": "現在の状態でバックアップを作成しますか？",
+    "created": "バックアップが作成されました。",
+    "createFailed": "バックアップ作成失敗",
+    "confirmRestore": "⚠️ 注意: このバックアップで復元すると、現在のファイルが上書きされます。\n本当に復元しますか？",
+    "restored": "復元されました。変更を反映するにはプロジェクトを再読み込みしてください。",
+    "restoreFailed": "復元失敗",
+    "confirmDelete": "本当にこのバックアップファイルを削除しますか？",
+    "deleted": "バックアップファイルが削除されました。",
+    "deleteFailed": "削除失敗",
+    "cannotRestoreWhenRunning": "サーバー実行中は復元できません。\nサーバーを停止してから再試行してください。"
+  },
+  "closeConfirm": {
+    "title": "プログラム終了",
+    "message": "どうしますか？",
+    "background": "バックグラウンド維持",
+    "backgroundDesc": "トレイで実行を継続",
+    "quit": "完全終了",
+    "quitDesc": "プログラムを完全に閉じる"
   }
 }

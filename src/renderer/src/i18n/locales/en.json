@@ -12,6 +12,27 @@
     "settings": "Settings",
     "language": "Language"
   },
+  "settings": {
+    "title": "Settings",
+    "backupPathLabel": "Backup Path Settings",
+    "backupPathDesc": "Specify the location where project backup files will be saved.",
+    "noPath": "No path set",
+    "change": "Change",
+    "pathChanged": "Backup path changed.",
+    "pathChangeFailed": "Failed to change backup path.",
+    "tunnelService": "Tunnel Service",
+    "tunnelServiceDesc": "Select the tunnel service for external sharing.",
+    "tunnelSaved": "Tunnel settings saved.",
+    "tunnelSaveFailed": "Failed to save tunnel settings.",
+    "ngrokHint": "Create a free account at ngrok.com and copy your authtoken.",
+    "ngrokFreePlanNote": "Free plan only supports 1 tunnel at a time.",
+    "cloudflareToken": "Cloudflare Tunnel Token",
+    "cloudflareTokenDesc": "Enter the token from Zero Trust Dashboard. (Leave blank to use random temporary URL)",
+    "cloudflareDomain": "Custom Domain (Optional)",
+    "cloudflareDomainDesc": "Domain connected to Tunnel Token (e.g. editor.mydomain.com)",
+    "cloudflareWildcardHint": "Multi-Project: Enter *.domain.com (Cloudflare Conf: * → localhost:4000)",
+    "stopServersFirst": "Please stop all servers before changing settings."
+  },
   "modeSelect": {
     "title": "My Bucket Editor",
     "selectMode": "Select a mode",
@@ -32,7 +53,8 @@
     "serverRunning": "Server Running",
     "serverStopped": "Server Stopped",
     "port": "Port",
-    "path": "Path"
+    "path": "Path",
+    "serverStartRequired": "Please try connecting after starting the server."
   },
   "createProject": {
     "title": "Create New Project",
@@ -56,12 +78,34 @@
     "serverAddress": "Server Address",
     "email": "Email",
     "password": "Password",
+    "confirmPassword": "Confirm Password",
     "connect": "Connect",
     "connecting": "Connecting...",
     "connectionStatus": "Connection Status",
     "waitingConnection": "Waiting for connection",
     "serverShutdown": "The host has shut down the server.",
-    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved."
+    "serverShutdownWithSave": "The host has shut down the server. Your work has been saved.",
+    "downloadProject": "Download",
+    "recentServers": "Recent Servers",
+    "noRecentServers": "No recent connections",
+    "directInput": "Enter manually",
+    "registerTitle": "Request Access",
+    "noAccount": "Don't have an account? Request access",
+    "hasAccount": "Already have an account? Sign in",
+    "requestApproval": "Request Access",
+    "passwordMismatch": "Passwords do not match.",
+    "fillAllFields": "Please fill in all fields.",
+    "requestSent": "📨 Access request sent. Please log in again once the host approves.",
+    "pendingApproval": "⏳ Waiting for host approval.",
+    "accessRejected": "⛔ Access was rejected.",
+    "alreadyPending": "You have already requested access. Please wait for the host to approve.",
+    "alreadyRegistered": "This account is already registered. Please log in."
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n} hours ago",
+    "daysAgo": "{n} days ago"
   },
   "userManage": {
     "title": "User Management",
@@ -93,5 +137,31 @@
     "disableExternal": "Stop Sharing",
     "copied": "Copied!",
     "connecting": "Connecting..."
+  },
+  "backup": {
+    "title": "Backup Management",
+    "button": "Backup",
+    "create": "Create Backup",
+    "restore": "Restore",
+    "delete": "Delete",
+    "empty": "No backups available.",
+    "confirmCreate": "Create a backup of the current state?",
+    "created": "Backup created.",
+    "createFailed": "Backup failed.",
+    "confirmRestore": "⚠️ Warning: Restoring this backup will overwrite current files.\nAre you sure?",
+    "restored": "Restored. Reload the project to apply changes.",
+    "restoreFailed": "Restore failed.",
+    "confirmDelete": "Are you sure you want to delete this backup?",
+    "deleted": "Backup deleted.",
+    "deleteFailed": "Delete failed.",
+    "cannotRestoreWhenRunning": "Cannot restore while the server is running.\nPlease stop the server and try again."
+  },
+  "closeConfirm": {
+    "title": "Close Application",
+    "message": "What would you like to do?",
+    "background": "Minimize to Tray",
+    "backgroundDesc": "Keep running in background",
+    "quit": "Exit",
+    "quitDesc": "Close completely"
   }
 }

@@ -2,8 +2,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Project } from '../types'
+import { useModal } from '../contexts/ModalContext'
 import KebabMenu from './KebabMenu'
 import UserManageModal from './UserManageModal'
+
+import BackupModal from './BackupModal'
 
 interface Props {
     project: Project
@@ -15,8 +18,10 @@ interface Props {
 
 export default function ProjectItem({ project, isActive, onToggleServer, onOpenEditor, onDeleteProject }: Props) {
     const { t } = useTranslation()
+    const { showAlert } = useModal()
     const [menuOpen, setMenuOpen] = useState(false)
     const [userModalOpen, setUserModalOpen] = useState(false)
+    const [backupModalOpen, setBackupModalOpen] = useState(false) // 백업 모달 상태
     const [tunnelUrl, setTunnelUrl] = useState<string | null>(null)
     const [isTunnelLoading, setIsTunnelLoading] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
@@ -38,9 +43,10 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
         if (!isActive) {
             setTunnelUrl(null)
         } else {
-            // 서버가 켜져있으면 기존 터널 확인
-            (window as any).api.getTunnelUrl().then((url: string | null) => {
+            // 서버가 켜져있으면 기존 터널 확인 (포트별로 확인)
+            (window as any).api.getTunnelUrl(project.port).then((url: string | null) => {
                 if (url) setTunnelUrl(url)
+                else setTunnelUrl(null) // URL이 없으면 명확하게 null 처리
             })
         }
     }, [isActive])
@@ -55,7 +61,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     // 터널 토글 핸들러
     const handleToggleTunnel = async () => {
         if (!isActive) {
-            alert(t('dashboard.startServer') + '!')
+            showAlert({ message: t('dashboard.startServer') + '!', type: 'warning' })
             return
         }
 
@@ -63,16 +69,16 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
 
         if (tunnelUrl) {
             setIsTunnelLoading(true)
-            await api.stopTunnel()
+            await api.stopTunnel(project.port)
             setTunnelUrl(null)
             setIsTunnelLoading(false)
         } else {
             setIsTunnelLoading(true)
-            const result = await api.startTunnel(project.port)
+            const result = await api.startTunnel(project.port, project.name)
             if (result.success && result.url) {
                 setTunnelUrl(result.url)
             } else {
-                alert(result.error || t('errors.networkError'))
+                showAlert({ message: result.error || t('errors.networkError'), type: 'error' })
             }
             setIsTunnelLoading(false)
         }
@@ -81,7 +87,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
     const handleCopyUrl = async () => {
         if (tunnelUrl) {
             await (window as any).api.copyToClipboard(tunnelUrl)
-            alert(t('tunnel.copied'))
+            showAlert({ message: t('tunnel.copied'), type: 'success' })
         }
     }
 
@@ -99,11 +105,21 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
             <div className="item-actions-wrapper">
                 <div className="item-actions">
                     <button
-                        className="user-manage-btn"
+                        className="icon-btn"
                         onClick={() => setUserModalOpen(true)}
+                        style={{ marginRight: '5px' }}
                     >
                         👥 {t('dashboard.manageUsers')}
                     </button>
+
+                    <button
+                        className="icon-btn"
+                        onClick={() => setBackupModalOpen(true)}
+                        style={{ marginRight: '5px' }}
+                    >
+                        📦 {t('backup.button')}
+                    </button>
+
                     <button className={`run-server-btn ${isActive ? 'active' : ''}`} onClick={onToggleServer}>
                         {isActive ? `⏹ ${t('dashboard.stopServer')}` : `▶ ${t('dashboard.startServer')}`}
                     </button>
@@ -140,6 +156,14 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
                 port={project.port}
                 isOpen={userModalOpen}
                 onClose={() => setUserModalOpen(false)}
+            />
+
+            {/* 백업 관리 모달 */}
+            <BackupModal
+                isOpen={backupModalOpen}
+                onClose={() => setBackupModalOpen(false)}
+                projectPath={project.path}
+                isServerRunning={isActive}
             />
         </div>
     )
