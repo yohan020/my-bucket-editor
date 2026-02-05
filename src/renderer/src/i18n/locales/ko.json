@@ -119,7 +119,12 @@
   },
   "login": {
     "title": "로그인",
-    "guestLogin": "Guest 로그인"
+    "guestLogin": "Guest 로그인",
+    "hostLogin": "Host 로그인",
+    "enterPassword": "비밀번호를 입력하세요",
+    "passwordPlaceholder": "비밀번호",
+    "loginBtn": "로그인",
+    "forgotPassword": "비밀번호를 잊으셨나요?"
   },
   "errors": {
     "connectionFailed": "연결에 실패했습니다.",

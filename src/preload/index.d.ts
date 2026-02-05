@@ -28,6 +28,21 @@ interface ApiInterface {
   getBackupPath: () => Promise<string>
   setBackupPath: (path: string) => Promise<void>
   deleteBackup: (backupPath: string) => Promise<boolean>
+  getTunnelSettings: () => Promise<{ service: string; ngrokAuthToken: string; cloudflareToken?: string; cloudflareDomain?: string }>
+  setTunnelSettings: (settings: { service?: string; ngrokAuthToken?: string; cloudflareToken?: string; cloudflareDomain?: string }) => Promise<{ success: boolean }>
+  
+  auth: {
+      checkStatus: () => Promise<{ isConfigured: boolean }>
+      setup: (password: string) => Promise<{ success: boolean; recoveryCode?: string; error?: string }>
+      login: (password: string) => Promise<{ success: boolean }>
+      reset: (recoveryCode: string) => Promise<{ success: boolean }>
+      getTotpStatus: () => Promise<{ enabled: boolean }>
+      generateTotp: () => Promise<{ success: boolean; secret: string; qrDataUrl: string; error?: string }>
+      verifyTotpSetup: (data: { token: string; secret: string }) => Promise<{ isValid: boolean }>
+      enableTotp: (secret: string) => Promise<{ success: boolean }>
+      disableTotp: () => Promise<{ success: boolean }>
+      verifyTotp: (token: string) => Promise<{ isValid: boolean }>
+  }
 }
 
 declare global {

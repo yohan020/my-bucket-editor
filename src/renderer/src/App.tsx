@@ -4,6 +4,7 @@ import { ViewState, Project } from './types'
 import { useProjects } from './hooks/useProjects'
 import { ModalProvider } from './contexts/ModalContext'
 import LoginPage from './pages/LoginPage'
+import AuthSetupPage from './pages/AuthSetupPage'
 import DashboardPage from './pages/DashboardPage'
 import CreateProjectPage from './pages/CreateProjectPage'
 import EditorPage from './pages/EditorPage'
@@ -37,12 +38,20 @@ declare global {
       resetFocus: () => Promise<boolean>
       onCloseConfirm: (callback: () => void) => () => void
       closeResponse: (action: 'background' | 'quit' | 'cancel') => void
+      copyToClipboard: (text: string) => Promise<void>
+      auth: {
+        checkStatus: () => Promise<{ isConfigured: boolean }>
+        setup: (password: string) => Promise<{ success: boolean; recoveryCode?: string; error?: string }>
+        login: (password: string) => Promise<{ success: boolean }>
+        reset: (recoveryCode: string) => Promise<{ success: boolean }>
+      }
     }
   }
 }
 
 export default function App() {
-  const [view, setView] = useState<ViewState>('MODE_SELECT')
+  const [view, setView] = useState<ViewState | 'AUTH_SETUP'>('MODE_SELECT')
+  const [isAuthChecking, setIsAuthChecking] = useState(true)
   const [username, setUsername] = useState('')
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [guestAddress, setGuestAddress] = useState('')
@@ -62,8 +71,24 @@ export default function App() {
     return cleanup
   }, [])
 
-  const handleLogin = (name: string) => {
-    setUsername(name)
+  // 초기 인증 상태 확인 (제거됨 - 호스트 선택 시 확인)
+  useEffect(() => {
+    setIsAuthChecking(false)
+  }, [])
+
+  const handleHostSelect = async () => {
+    const status = await window.api.auth.checkStatus()
+    if (status.isConfigured) {
+      setView('LOGIN')
+    } else {
+      setView('AUTH_SETUP')
+    }
+  }
+
+  const handleLogin = async (usernameInput: string) => {
+    // 실제로는 LoginPage에서 auth.login 호출하므로 여기서는 뷰 전환만
+    // 하지만 기존 로직 유지를 위해 username 설정
+    setUsername(usernameInput)
     setView('DASHBOARD')
   }
 
@@ -80,10 +105,18 @@ export default function App() {
 
   // 현재 뷰에 따른 페이지 렌더링
   const renderPage = () => {
+    if (isAuthChecking) {
+      return <div className="center-container">Loading...</div>
+    }
+
+    if (view === 'AUTH_SETUP') {
+      return <AuthSetupPage onComplete={() => setView('MODE_SELECT')} />
+    }
+
     if (view === 'MODE_SELECT') {
       return (
         <ModeSelectPage
-          onSelectHost={() => setView('LOGIN')}
+          onSelectHost={handleHostSelect}
           onSelectGuest={() => setView('GUEST_CONNECT')}
         />
       )

@@ -33,6 +33,7 @@ const api = {
   // === 윈도우 포커스 API ===
   focusWindow: (): Promise<boolean> => ipcRenderer.invoke('window:focus'),
   resetFocus: (): Promise<boolean> => ipcRenderer.invoke('window:resetFocus'),
+  refocusWindow: (): Promise<boolean> => ipcRenderer.invoke('window:refocus'),
 
   // === 터널(ngrok) 관련 API ===
   startTunnel: (port: number, projectName?: string): Promise<{ success: boolean; url?: string; error?: string }> => ipcRenderer.invoke('tunnel:start', port, projectName),
@@ -51,6 +52,22 @@ const api = {
   getBackupPath: (): Promise<string> => ipcRenderer.invoke('backup:getPath'),
   setBackupPath: (path: string): Promise<void> => ipcRenderer.invoke('backup:setPath', path),
   deleteBackup: (backupPath: string): Promise<boolean> => ipcRenderer.invoke('backup:delete', backupPath),
+
+  // === 인증 API ===
+  auth: {
+      checkStatus: (): Promise<{ isConfigured: boolean }> => ipcRenderer.invoke('auth:status'),
+      setup: (password: string): Promise<{ success: boolean; recoveryCode?: string; error?: string }> => ipcRenderer.invoke('auth:setup', password),
+      login: (password: string): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:login', password),
+      reset: (recoveryCode: string): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:reset', recoveryCode),
+      
+      // 2FA
+      getTotpStatus: (): Promise<{ enabled: boolean }> => ipcRenderer.invoke('auth:totp-status'),
+      generateTotp: (): Promise<{ success: boolean; secret: string; qrDataUrl: string; error?: string }> => ipcRenderer.invoke('auth:totp-generate'),
+      verifyTotpSetup: (data: { token: string; secret: string }): Promise<{ isValid: boolean }> => ipcRenderer.invoke('auth:totp-verify-setup', data),
+      enableTotp: (secret: string): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:totp-enable', secret),
+      disableTotp: (): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:totp-disable'),
+      verifyTotp: (token: string): Promise<{ isValid: boolean }> => ipcRenderer.invoke('auth:totp-verify', token)
+  },
 
   // === 창 닫기 확인 API ===
   onCloseConfirm: (callback: () => void) => {

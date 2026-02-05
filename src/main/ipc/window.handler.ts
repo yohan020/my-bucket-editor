@@ -22,19 +22,28 @@ export function registerWindowHandlers(): void {
             if (win.isMinimized()) win.restore()
             if (!win.isVisible()) win.show()
             
-            // 첫 번째 포커스만 blur 사용 (타이핑 활성화에 필요)
-            // 이후 포커스는 blur 없이 (깜빡임 방지)
-            if (!initialFocusDone.has(winId)) {
-                initialFocusDone.add(winId)
-                win.blur()
-                win.focus()
-            } else {
-                win.focus()
-            }
+            win.focus()
             win.webContents.focus()
             
             return true
         }
         return false
+    })
+
+    // 포커스 문제 해결을 위한 blur/focus 사이클 (alt-tab 효과)
+    ipcMain.handle('window:refocus', (event) => {
+        const win = BrowserWindow.fromWebContents(event.sender)
+        if (win) {
+            return new Promise<boolean>((resolve) => {
+                // blur 후 짧은 지연을 두고 다시 focus
+                win.blur()
+                setTimeout(() => {
+                    win.focus()
+                    win.webContents.focus()
+                    resolve(true)
+                }, 50)
+            })
+        }
+        return Promise.resolve(false)
     })
 }
