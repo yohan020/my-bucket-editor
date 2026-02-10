@@ -165,6 +165,14 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                     setupBinding()
                 }, 100)
             }
+
+        })
+
+        socket.on('file:read:disk:response', (data) => {
+            if (data.success) {
+                console.log('📄 원본 파일 데이터 수신:', data.filePath)
+                setOriginalContent(data.content)
+            }
         })
 
         socket.on('awareness:update', ({ filePath, update }: { filePath: string, update: number[] }) => {
@@ -372,8 +380,8 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                             prs={prList}
                             onSelect={(pr) => {
                                 setSelectedPR(pr)
-                                // 원본 파일 내용 요청
-                                socketRef.current?.emit('file:read', pr.filePath)
+                                // 원본 파일 내용 요청 (디스크 버전)
+                                socketRef.current?.emit('file:read:disk', pr.filePath)
                             }}
                         />
                     )}

@@ -22,7 +22,7 @@ declare global {
       selectFolder: () => Promise<string | null>
       getProjects: () => Promise<Project[]>
       createProject: (project: Project) => Promise<boolean>
-      startServer: (port: number, projectPath: string, projectName: string) => Promise<{ success: boolean; message: string }>
+      startServer: (projectId: number, projectPath: string, projectName: string) => Promise<{ success: boolean; message: string; port?: number }>
       stopServer: (port: number) => Promise<boolean>
       onGuestRequest: (callback: (data: { port: number; email: string }) => void) => () => void
       getFileTree: (dirPath: string) => Promise<any>

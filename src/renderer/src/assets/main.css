@@ -1,4 +1,8 @@
 /* 기본 초기화 */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background-color: #1e1e1e;
@@ -6,6 +10,101 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   /* 가로 스크롤 방지 */
+}
+
+/* ... (skip to PR Modal styles) */
+
+/* PR 생성 모달 */
+.pr-modal {
+  width: 100%;
+  max-width: 500px;
+  /* 고정 폭 대신 max-width 사용 */
+  background: #252526;
+  padding: 24px;
+  /* 패딩 증가 */
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  border: 1px solid #444;
+  /* 경계선 추가 */
+}
+
+.pr-modal h3 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+}
+
+.pr-modal p {
+  color: #ccc;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.pr-message-input {
+  width: 100%;
+  height: 150px;
+  /* 높이 증가 */
+  background: #1e1e1e;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 12px;
+  border-radius: 4px;
+  resize: none;
+  /* 리사이즈 금지 (레이아웃 깨짐 방지) */
+  font-family: inherit;
+  margin-bottom: 24px;
+  font-size: 1rem;
+}
+
+.pr-message-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  /* 오른쪽 정렬 */
+  gap: 12px;
+}
+
+.modal-buttons button {
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.modal-buttons .cancel-btn {
+  background: #3c3c3c;
+  color: #e0e0e0;
+  border: 1px solid transparent;
+}
+
+.modal-buttons .cancel-btn:hover {
+  background: #4b4b4b;
+}
+
+.modal-buttons .confirm-btn {
+  background: #0e639c;
+  /* VS Code Blue */
+  color: white;
+}
+
+.modal-buttons .confirm-btn:hover {
+  background: #1177bb;
+}
+
+.modal-buttons .confirm-btn:disabled {
+  background: #2d3e4d;
+  color: #666;
+  cursor: not-allowed;
 }
 
 /* --- 공통 버튼 스타일 --- */
