@@ -7,7 +7,7 @@ const api = {
   selectFolder: (): Promise<string | null> => ipcRenderer.invoke('dialog:openDirectory'),
   getProjects: (): Promise<any[]> => ipcRenderer.invoke('project:list'),
   createProject: (project: any): Promise<boolean> => ipcRenderer.invoke('project:create', project),
-  startServer: (port: number, projectPath: string, projectName: string): Promise<any> => ipcRenderer.invoke('server:start', {port, projectPath, projectName}),
+  startServer: (projectId: number, projectPath: string, projectName: string): Promise<any> => ipcRenderer.invoke('server:start', {projectId, projectPath, projectName}),
   stopServer: (port: number): Promise<boolean> => ipcRenderer.invoke('server:stop', port),
   onGuestRequest: (callback: (data: { port: number, email: string }) => void) => {
     const handler = (_: Electron.IpcRendererEvent, data: { port: number, email: string }) => callback(data)

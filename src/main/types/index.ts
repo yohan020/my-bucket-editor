@@ -16,7 +16,8 @@ export interface ServerInstance {
   app: express.Express,
   http: http.Server,
   io: Server,
-  projectName: string
+  projectName: string,
+  projectId: number | string
 }
 
 export interface User {

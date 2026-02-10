@@ -9,13 +9,13 @@ interface ApprovedUser {
     approvedAt: string // 승인 날짜
 }
 
-// 저장 경로 : userData/approved-users-{port}.json (프로젝트별 분리!)
-const getFilePath = (port: number) => join(app.getPath('userData'), `approved-users-${port}.json`)
+// 저장 경로 : userData/approved-users-{projectId}.json (프로젝트 ID별 분리!)
+const getFilePath = (projectId: number | string) => join(app.getPath('userData'), `approved-users-${projectId}.json`)
 
 // 유저 목록 로드
-export async function loadApprovedUsers(port: number): Promise<ApprovedUser[]> {
+export async function loadApprovedUsers(projectId: number | string): Promise<ApprovedUser[]> {
     try {
-        const data = await fs.readFile(getFilePath(port), 'utf-8')
+        const data = await fs.readFile(getFilePath(projectId), 'utf-8')
         return JSON.parse(data)
     } catch (error) {
         return []
@@ -23,37 +23,37 @@ export async function loadApprovedUsers(port: number): Promise<ApprovedUser[]> {
 }
 
 // 유저 저장
-export async function saveApprovedUsers(port: number, users: ApprovedUser[]): Promise<void> {
-    await fs.writeFile(getFilePath(port), JSON.stringify(users, null, 2))
+export async function saveApprovedUsers(projectId: number | string, users: ApprovedUser[]): Promise<void> {
+    await fs.writeFile(getFilePath(projectId), JSON.stringify(users, null, 2))
 }
 
 // 유저 추가
-export async function addApprovedUser(port: number, email: string, password: string): Promise<void> {
-    const users = await loadApprovedUsers(port)
+export async function addApprovedUser(projectId: number | string, email: string, password: string): Promise<void> {
+    const users = await loadApprovedUsers(projectId)
     if (!users.find(u => u.email === email)) {
         users.push({ email, password, approvedAt: new Date().toISOString() })
-        await saveApprovedUsers(port, users)
+        await saveApprovedUsers(projectId, users)
     }
 }
 
 // 유저 삭제
-export async function removeApprovedUser(port: number, email: string): Promise<void> {
-    const users = await loadApprovedUsers(port)
+export async function removeApprovedUser(projectId: number | string, email: string): Promise<void> {
+    const users = await loadApprovedUsers(projectId)
     const filtered = users.filter(u => u.email !== email)
-    await saveApprovedUsers(port, filtered)
+    await saveApprovedUsers(projectId, filtered)
 }
 
 // 유저 확인
-export async function isApprovedUser(port: number, email: string, password: string): Promise<boolean> {
-    const users = await loadApprovedUsers(port)
+export async function isApprovedUser(projectId: number | string, email: string, password: string): Promise<boolean> {
+    const users = await loadApprovedUsers(projectId)
     return users.some(u => u.email === email && u.password === password)
 }
 
 // 유저 파일 전체 삭제 (프로젝트 삭제 시)
-export async function deleteApprovedUserFile(port: number): Promise<void> {
+export async function deleteApprovedUserFile(projectId: number | string): Promise<void> {
     try {
-        await fs.unlink(getFilePath(port))
+        await fs.unlink(getFilePath(projectId))
     } catch (error) {
-        console.error(error)
+        // 파일이 없을 수도 있음
     }
 }

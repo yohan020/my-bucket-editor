@@ -7,7 +7,7 @@ import * as Y from 'yjs'
 import { randomUUID } from 'crypto'
 import { addPR, getPRs, removePR, PullRequest, getPR } from '../prStore'
 
-export function setupSocketHandlers(io: Server, projectPath: string): void {
+export function setupSocketHandlers(io: Server, projectPath: string, projectId: number): void {
     // [Scope Fix] 각 서버 인스턴스마다 독립적인 상태 관리를 위해 함수 내부로 이동
     // 파일별 현재 내용 캐시 (메모리)
     const fileContents = new Map<string, string>()
@@ -40,7 +40,10 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
         
         // Guest는 토큰 필요
         const token = socket.handshake.auth?.token
-        if (token && verifyToken(token)) {
+        const verified = token ? verifyToken(token) : null
+        
+        // 토큰이 유효하고, projectId가 일치하는지 확인
+        if (verified && Number(verified.projectId) === Number(projectId)) {
             console.log('✅ Guest 인증 성공:', socket.id)
             next()
         } else {
@@ -93,6 +96,20 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
                  })
             } catch (error) {
                 socket.emit('file:read:response', { success: false, error: String(error) })
+            }
+        })
+
+        // [DiffViewer용] 디스크에 저장된 원본 파일 읽기 요청
+        socket.on('file:read:disk', async (filePath: string) => {
+            try {
+                const content = await readFileContent(filePath)
+                socket.emit('file:read:disk:response', { 
+                    success: true,
+                    filePath,
+                    content
+                 })
+            } catch (error) {
+                socket.emit('file:read:disk:response', { success: false, error: String(error) })
             }
         })
 
@@ -164,8 +181,8 @@ export function setupSocketHandlers(io: Server, projectPath: string): void {
         })
 
         // 승인된 유저 목록 요청 (Guest용)
-        socket.on('users:approved', async (port: number) => {
-            const users = await loadApprovedUsers(port)
+        socket.on('users:approved', async () => {
+            const users = await loadApprovedUsers(projectId)
             socket.emit('users:approved', users.map(u => ({ email: u.email })))
         })
 

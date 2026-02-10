@@ -37,6 +37,7 @@ interface Props {
 
 export default function GuestEditorPage({ address, token, email, projectName, onDisconnect }: Props) {
     const { t } = useTranslation()
+    const { showAlert } = useModal()
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
@@ -158,7 +159,11 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                 socket.emit('file:write', { filePath: currentFileRef.current })
             }
 
-            alert(t('guest.serverShutdownWithSave'))
+            showAlert({
+                title: t('common.notice') || '알림',
+                message: t('guest.serverShutdownWithSave') || '서버가 종료되었습니다. 마지막 변경사항이 저장되었습니다.',
+                type: 'warning'
+            })
             onDisconnect()
         })
 
@@ -238,9 +243,17 @@ export default function GuestEditorPage({ address, token, email, projectName, on
 
         socket.on('pr:create:response', (data) => {
             if (data.success) {
-                alert(t('guest.prSentSuccess') || 'PR이 성공적으로 전송되었습니다!')
+                showAlert({
+                    title: 'PR 전송 성공',
+                    message: t('guest.prSentSuccess') || 'PR이 성공적으로 전송되었습니다!',
+                    type: 'success'
+                })
             } else {
-                alert((t('errors.prSentFailed') || 'PR 전송 실패: ') + data.error)
+                showAlert({
+                    title: 'PR 전송 실패',
+                    message: (t('errors.prSentFailed') || 'PR 전송 실패: ') + data.error,
+                    type: 'error'
+                })
             }
         })
 
@@ -379,7 +392,11 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                             document.body.removeChild(a)
                         } catch (error) {
                             console.error('Download error:', error)
-                            alert(t('errors.networkError'))
+                            showAlert({
+                                title: t('common.error') || '오류',
+                                message: t('errors.networkError') || '네트워크 오류가 발생했습니다.',
+                                type: 'error'
+                            })
                         }
                     }}
                     title={t('guest.downloadProject')}

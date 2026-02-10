@@ -5,22 +5,34 @@ import { User } from '../../types'
 import { generateToken } from '../utils/jwt'
 import { isApprovedUser } from '../../utils/userStore'
 
-export function createAuthRouter(port: number): Router {
+export function createAuthRouter(projectId: number | string): Router {
     const router = Router()
 
     // 로그인 API
     router.post('/api/login', async (req, res) => {
         const {email, password} = req.body
-        const serverInstance = servers.get(port)
-        const projectName = serverInstance?.projectName || 'Unknown Project'
+        
+        // 동적 포트 감지 (Express req.socket.localPort)
+        const port = req.socket.localPort || 0
+        
+        // servers Map에서 projectName 찾기 (projectId 기반)
+        // (server.handler.ts에서 넘겨받지 않고 직접 찾음 -> 더 안전)
+        let projectName = 'Unknown Project'
+        for (const s of servers.values()) {
+            if (s.projectId === projectId) {
+                projectName = s.projectName
+                break
+            }
+        }
 
-        // 영구 저장된 유저인지 확인 (해당 프로젝트/포트)
-        if (await isApprovedUser(port, email, password)) {
-            const token = generateToken({ email, port })
+        // 영구 저장된 유저인지 확인 (projectId 기반)
+        if (await isApprovedUser(projectId, email, password)) {
+            // 토큰에 port와 projectId 모두 포함
+            const token = generateToken({ email, port, projectId: Number(projectId) })
             return res.json({ success: true, token, projectName })
         }
 
-        const users = projectUsers.get(port) || [];
+        const users = projectUsers.get(Number(projectId)) || [];
         const existingUser = users.find(u => u.email === email)
 
         // A. 이미 등록된 유저인 경우
@@ -50,7 +62,8 @@ export function createAuthRouter(port: number): Router {
             return res.status(400).json({ success: false, message: 'missing_fields' })
         }
 
-        const users = projectUsers.get(port) || [];
+        const numericProjectId = Number(projectId)
+        const users = projectUsers.get(numericProjectId) || [];
         const existingUser = users.find(u => u.email === email)
 
         // 이미 등록된 유저인 경우
@@ -66,14 +79,14 @@ export function createAuthRouter(port: number): Router {
         }
 
         // 영구 저장된 유저인지 확인
-        if (await isApprovedUser(port, email, password)) {
+        if (await isApprovedUser(projectId, email, password)) {
             return res.status(409).json({ success: false, message: 'already_registered' })
         }
 
         // 새 유저 등록 (pending 상태)
         const newUser: User = { email, password, status: 'pending' }
         users.push(newUser)
-        projectUsers.set(port, users)
+        projectUsers.set(numericProjectId, users)
 
         return res.status(201).json({ success: true, message: 'request_sent' })
     })

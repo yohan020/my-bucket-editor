@@ -35,10 +35,15 @@ export function useProjects() {
             }
             return { error: '서버 종료 실패' }
         } else {
-            const result = await window.api.startServer(project.port, project.path, project.name)
+            // [Dynamic Port] projectId 전달
+            const result = await window.api.startServer(project.id, project.path, project.name)
             if (result.success) {
+                // 성공 시 동적 할당된 포트로 프로젝트 상태 업데이트
+                const newPort = result.port!
+                setProjects(prev => prev.map(p => p.id === project.id ? { ...p, port: newPort } : p))
+                
                 setActiveProjectIds(prev => [...prev, project.id])
-                return { started: true, port: project.port }
+                return { started: true, port: newPort }
             }
             return { error: result.message }
         }

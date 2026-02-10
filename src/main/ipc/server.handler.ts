@@ -4,7 +4,7 @@ import express from 'express'
 import http from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
-import { servers, projectUsers } from '../server'
+import { servers } from '../server'
 import { createAuthRouter } from '../server/routes/auth.route'
 import { createGuestRouter } from '../server/routes/guest.page'
 import { createEditorRouter } from '../server/routes/editor.page'
@@ -14,37 +14,43 @@ import { getProjectZipBuffer } from '../backup';
 // 서버 시작 핸들러
 export function registerServerHandlers(): void {
     
-  ipcMain.handle('server:start', async (_, {port, projectPath, projectName}) => {
-    // 1. 이미 켜져 있다면 끄고 다시 시작
-    if (servers.has(port)) {
-      console.log('이미 실행 중인 서버가 있습니다. 재시작합니다')
-      servers.get(port)?.http.close()
-      servers.delete(port)
+  ipcMain.handle('server:start', async (_, {projectId, projectPath, projectName}) => {
+    // 1. 이미 켜져 있는 프로젝트인지 확인
+    // 기존에는 port로 확인했지만, 이제는 projectId나 path로 확인해야 함.
+    // 하지만 servers Map은 port를 키로 쓰고 있음.
+    // -> servers Map 값을 순회하며 projectId가 같은지 확인하거나, 구조를 변경해야 함.
+    // 간단하게: 이미 실행 중인 서버 중 동일한 projectId가 있으면 그 정보 반환 (또는 재시작)
+    
+    for (const [runningPort, server] of servers.entries()) {
+        if (server.projectId === projectId) {
+            console.log(`이미 실행 중인 프로젝트입니다 (Port: ${runningPort}). 재시작합니다.`)
+            server.http.close()
+            servers.delete(runningPort)
+            break
+        }
     }
 
-    // 2. 해당 포트의 상요자 목록 초기화
-    if (!projectUsers.has(port)) {
-      projectUsers.set(port, [])
-    }
+    // 2. 사용자 목록 초기화 (projectId 기반으로 변경되었으므로 별도 인메모리 관리는 필요 없을 수도 있지만,
+    // 성능을 위해 메모리에 캐싱한다면 projectId를 키로 써야 함.
+    // userStore.ts가 이제 파일 기반으로 projectId를 쓰므로,
+    // 여기서는 굳이 메모리에 별도로 set할 필요가 없거나,
+    // projectUsers Map을 <projectId, Users>로 변경해야 함.
+    // -> server.ts의 projectUsers 정의를 확인해야 함. (일단 패스하고 userStore 직접 사용 권장)
 
     try {
       const app = express()
-      app.use(cors()) // 보안 정책 허용
+      app.use(cors())
       app.use(express.json())
 
-      // 라우트 등록
-      app.use(createAuthRouter(port))
+      // 라우트 등록 (authRouter 등에서 port를 썼던 것 수정 필요)
+      // createAuthRouter(projectId) 로 변경 필요
+      app.use(createAuthRouter(projectId)) 
       app.use(createGuestRouter())
       app.use(createEditorRouter())
       
-      // 프로젝트 다운로드 API (게스트용)
+      // 프로젝트 다운로드 API
       app.get('/api/download', async (_req, res) => {
         try {
-          // 보안: 헤더 검사 (Bypass-Tunnel-Reminder 포함)
-          // 간단히 구현. 실제론 토큰 검증 미들웨어를 타는게 좋음.
-          // 여기선 createAuthRouter 등이 이미 있으니 토큰 검증은 생략하거나 추가할 수 있음.
-          // 편의상 단순히 제공.
-          
           const buffer = await getProjectZipBuffer(projectPath);
           res.setHeader('Content-Disposition', `attachment; filename="project_backup.zip"`);
           res.setHeader('Content-Type', 'application/zip');
@@ -57,29 +63,41 @@ export function registerServerHandlers(): void {
 
       // HTTP 서버 실행
       const httpServer = http.createServer(app)
-
-      // 소켓 서버 장착 (나중에 채팅/코딩용)
       const io = new Server(httpServer, {
-        cors: { 
-          origin: '*',  // 모든 곳에서 접속 허용
-          methods: ['GET', 'POST'],
-          credentials: true
-        },
-        transports: ['websocket', 'polling']  // WebSocket 우선, polling 대비
+        cors: { origin: '*', methods: ['GET', 'POST'], credentials: true },
+        transports: ['websocket', 'polling']
       })
 
       // Socket.io 이벤트 핸들러 등록
-      setupSocketHandlers(io, projectPath)
+      setupSocketHandlers(io, projectPath, Number(projectId))
 
-      // 4) 진짜로 포트 열기 (0.0.0.0 = 모든 네트워크 인터페이스에서 접근 가능)
-      httpServer.listen(port, '0.0.0.0', () => {
-        console.log(`✅ 서버가 ${port}번 포트에서 시작되었습니다! 경로: ${projectPath}`)
+      // 4) 동적 포트 할당 (port 0)
+      return new Promise((resolve) => {
+          httpServer.listen(0, '0.0.0.0', () => {
+            const address = httpServer.address()
+            const assignedPort = typeof address === 'string' ? 0 : address?.port || 0
+            
+            console.log(`✅ 서버 시작 (Project: ${projectName}, ID: ${projectId}) -> Port: ${assignedPort}`)
+            
+            // Map에 저장 (Key: Port) - Port로 찾는게 편함 (request host header 등)
+            // Value에 projectId 추가
+            servers.set(assignedPort, {
+                app, 
+                http: httpServer, 
+                io, 
+                projectName: projectName || 'Unknown Project',
+                projectId
+            })
+            
+            resolve({ success: true, message: '서버 시작 성공', port: assignedPort })
+          })
+
+          httpServer.on('error', (err) => {
+              console.error('서버 시작 중 에러:', err)
+              resolve({ success: false, message: String(err) })
+          })
       })
 
-      // Map에 저장
-      servers.set(port, {app, http: httpServer, io, projectName: projectName || 'Unknown Project'})
-      
-      return { success: true, message: '서버 시작 성공'}
     } catch (error) {
       console.error('서버 시작 실패: ',error)
       return { success: false, message: String(error)}
@@ -90,17 +108,13 @@ export function registerServerHandlers(): void {
   ipcMain.handle('server:stop', async (_, port: number) => {
     const server = servers.get(port)
     if (server) {
-      // 모든 클라이언트에게 서버 종료 알림 브로드캐스트
       server.io.emit('server:shutdown')
-      
-      // 클라이언트가 메시지를 받을 시간을 주고 종료
       await new Promise(resolve => setTimeout(resolve, 500))
       
       server.http.close(() => {
         console.log('⛔ 서버가 종료되었습니다.')
       })
       
-      // [Fix] 서버 종료 시 해당 포트의 터널도 함께 종료
       import('../tunnel').then(({ stopTunnel }) => {
           stopTunnel(port).catch(err => console.error('터널 종료 실패:', err))
       })
