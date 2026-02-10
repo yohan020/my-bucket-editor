@@ -99,7 +99,9 @@
     "pendingApproval": "⏳ ホストの承認を待っています。",
     "accessRejected": "⛔ アクセスが拒否されました。",
     "alreadyPending": "すでにアクセス申請を送信しています。ホストが承認するまでお待ちください。",
-    "alreadyRegistered": "このアカウントはすでに登録されています。ログインしてください。"
+    "alreadyRegistered": "このアカウントはすでに登録されています。ログインしてください。",
+    "prSentSuccess": "PRが正常に送信されました！",
+    "prSentFailed": "PRの送信に失敗しました"
   },
   "time": {
     "justNow": "たった今",
