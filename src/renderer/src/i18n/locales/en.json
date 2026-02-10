@@ -99,7 +99,9 @@
     "pendingApproval": "⏳ Waiting for host approval.",
     "accessRejected": "⛔ Access was rejected.",
     "alreadyPending": "You have already requested access. Please wait for the host to approve.",
-    "alreadyRegistered": "This account is already registered. Please log in."
+    "alreadyRegistered": "This account is already registered. Please log in.",
+    "prSentSuccess": "PR Sent Successfully!",
+    "prSentFailed": "PR Failed to Send"
   },
   "time": {
     "justNow": "Just now",
