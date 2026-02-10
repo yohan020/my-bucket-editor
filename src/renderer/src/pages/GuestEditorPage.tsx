@@ -11,6 +11,7 @@ import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awarene
 import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
 import { useModal } from '../contexts/ModalContext'
+import PRCreateModal from '../components/PRCreateModal'
 
 const editorOptions = {
     automaticLayout: true,
@@ -46,6 +47,9 @@ export default function GuestEditorPage({ address, token, email, projectName, on
     const [showUserPanel, setShowUserPanel] = useState(false)
     const [onlineUsers, setOnlineUsers] = useState<string[]>([])
     const [approvedUsers, setApprovedUsers] = useState<{ email: string }[]>([])
+
+    // PR 모달 상태
+    const [isPRModalOpen, setIsPRModalOpen] = useState(false)
 
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
@@ -232,14 +236,23 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             }
         })
 
+        socket.on('pr:create:response', (data) => {
+            if (data.success) {
+                alert(t('guest.prSentSuccess') || 'PR이 성공적으로 전송되었습니다!')
+            } else {
+                alert((t('errors.prSentFailed') || 'PR 전송 실패: ') + data.error)
+            }
+        })
+
         return () => {
+            socket.off('pr:create:response')
             socket.disconnect()
             bindingRef.current?.destroy()
             yDocRef.current?.destroy()
             awarenessRef.current?.destroy()
             cleanupCursorStyles()  // 커서 스타일 정리
         }
-    }, [address, setupBinding])
+    }, [address, setupBinding, t])
 
     // 파일 클릭 핸들러 (탭에 추가)
     const handleFileClick = (path: string) => {
@@ -292,15 +305,10 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             }).catch(() => { })
         }
 
-        // Ctrl+S 저장
+        // Ctrl+S 저장 -> PR 생성 모달 오픈
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
             if (currentFileRef.current && yDocRef.current) {
-                const content = yDocRef.current.getText('content').toString()
-                socketRef.current?.emit('file:write', {
-                    filePath: currentFileRef.current,
-                    content
-                })
-                console.log('💾 저장 요청:', currentFileRef.current)
+                setIsPRModalOpen(true)
             }
         })
 
@@ -485,6 +493,24 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                     </aside>
                 )}
             </div>
-        </div>
+
+
+            {/* PR 생성 모달 */}
+            <PRCreateModal
+                isOpen={isPRModalOpen}
+                onClose={() => setIsPRModalOpen(false)}
+                onConfirm={(message) => {
+                    if (currentFileRef.current && yDocRef.current) {
+                        const content = yDocRef.current.getText('content').toString()
+                        socketRef.current?.emit('pr:create', {
+                            filePath: currentFileRef.current,
+                            content,
+                            message
+                        })
+                        console.log('📨 PR 전송 요청:', currentFileRef.current)
+                    }
+                }}
+            />
+        </div >
     )
 }
