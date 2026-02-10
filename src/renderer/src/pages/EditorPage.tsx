@@ -11,6 +11,9 @@ import { encodeAwarenessUpdate, applyAwarenessUpdate } from 'y-protocols/awarene
 import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
 import { useModal } from '../contexts/ModalContext'
+import { PullRequest } from '../types'
+import PRListPanel from '../components/PRListPanel'
+import DiffViewer from '../components/DiffViewer'
 
 const editorOptions = {
     automaticLayout: true,
@@ -37,6 +40,12 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
     const [showUserPanel, setShowUserPanel] = useState(false)
     const [approvedUsers, setApprovedUsers] = useState<{ email: string }[]>([])
     const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+
+    // PR 시스템 상태
+    const [leftPanelTab, setLeftPanelTab] = useState<'files' | 'pr'>('files')
+    const [prList, setPrList] = useState<PullRequest[]>([])
+    const [selectedPR, setSelectedPR] = useState<PullRequest | null>(null)
+    const [originalContent, setOriginalContent] = useState<string>('')
 
     const socketRef = useRef<Socket | null>(null)
     const yDocRef = useRef<Y.Doc | null>(null)
@@ -121,6 +130,11 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             if (data.success && data.yjsState) {
                 console.log('📄 파일 데이터 수신:', data.filePath)
 
+                // DiffViewer용 원본 콘텐츠 저장 (PR 검토 중일 때)
+                if (data.content !== undefined) {
+                    setOriginalContent(data.content)
+                }
+
                 // 기존 정리 (Awareness 포함)
                 bindingRef.current?.destroy()
                 bindingRef.current = null
@@ -172,6 +186,37 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
 
         // 접속자 목록 요청
         socket.emit('users:online')
+
+        // PR 목록 요청
+        socket.emit('pr:list')
+
+        // PR 관련 핸들러
+        socket.on('pr:list:response', (data) => {
+            if (data.success) setPrList(data.prs)
+        })
+
+        socket.on('pr:list:update', (prs) => {
+            setPrList(prs)
+        })
+
+        socket.on('pr:notification', (pr: PullRequest) => {
+            // 알림 표시 (Toast가 없으니 console.log)
+            console.log('🔔 새 PR 도착:', pr.message)
+            // PR 탭으로 전환할지 여부는 선택사항
+            if (leftPanelTab !== 'pr') {
+                // 배지 표시 등을 위해 상태 업데이트 (여기선 생략)
+            }
+        })
+
+        socket.on('pr:approved', () => {
+            setSelectedPR(null) // 닫기
+            showAlert({ message: 'PR이 승인되었습니다.', type: 'success' })
+        })
+
+        socket.on('pr:rejected', () => {
+            setSelectedPR(null) // 닫기
+            showAlert({ message: 'PR이 거절되었습니다.', type: 'info' })
+        })
 
         return () => {
             socket.disconnect()
@@ -303,10 +348,35 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
             </header>
             {/* 메인 영역 */}
             <div className="editor-main">
-                {/* 사이드바 (파일 트리) */}
+                {/* 사이드바 (파일 트리 / PR 목록) */}
                 <aside className="file-tree">
-                    <div className="sidebar-header">{t('editor.fileExplorer')}</div>
-                    <FileTree tree={fileTree} onFileClick={handleFileClick} />
+                    <div className="sidebar-tabs">
+                        <button
+                            className={`tab-btn ${leftPanelTab === 'files' ? 'active' : ''}`}
+                            onClick={() => setLeftPanelTab('files')}
+                        >
+                            📁 파일
+                        </button>
+                        <button
+                            className={`tab-btn ${leftPanelTab === 'pr' ? 'active' : ''}`}
+                            onClick={() => setLeftPanelTab('pr')}
+                        >
+                            🚀 PRs ({prList.length})
+                        </button>
+                    </div>
+
+                    {leftPanelTab === 'files' ? (
+                        <FileTree tree={fileTree} onFileClick={handleFileClick} />
+                    ) : (
+                        <PRListPanel
+                            prs={prList}
+                            onSelect={(pr) => {
+                                setSelectedPR(pr)
+                                // 원본 파일 내용 요청
+                                socketRef.current?.emit('file:read', pr.filePath)
+                            }}
+                        />
+                    )}
                 </aside>
                 {/* 에디터 영역 */}
                 <main className="editor-container">
@@ -402,6 +472,18 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                     </aside>
                 )}
             </div>
+
+            {/* Diff Viewer Modal */}
+            {selectedPR && (
+                <DiffViewer
+                    original={originalContent}
+                    modified={selectedPR.content}
+                    language={detectLanguage(selectedPR.filePath)}
+                    onApprove={() => socketRef.current?.emit('pr:approve', selectedPR.id)}
+                    onReject={() => socketRef.current?.emit('pr:reject', selectedPR.id)}
+                    onClose={() => setSelectedPR(null)}
+                />
+            )}
         </div>
     )
 }

@@ -1978,3 +1978,212 @@ button:disabled {
 .settings-body::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* --- PR 시스템 스타일 --- */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #333;
+  margin-bottom: 5px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+}
+
+.tab-btn.active {
+  color: #fff;
+  border-bottom: 2px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  font-weight: bold;
+}
+
+.pr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  max-height: calc(100vh - 150px);
+}
+
+.pr-item {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #252526;
+}
+
+.pr-item:hover {
+  background: #2a2d3e;
+}
+
+.pr-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.pr-file {
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.pr-time {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.pr-message {
+  color: #ddd;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.pr-author {
+  color: #555;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.pr-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* PR 생성 모달 */
+.pr-modal {
+  width: 500px;
+  background: #252526;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  /* 중앙 정렬은 overlay가 처리 */
+}
+
+.pr-modal h3 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+.pr-message-input {
+  width: 100%;
+  height: 120px;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+  margin: 10px 0 20px;
+}
+
+.pr-message-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* Diff Viewer */
+.diff-viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.diff-viewer-container {
+  width: 90vw;
+  height: 90vh;
+  background: #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.diff-header {
+  height: 50px;
+  background: #252526;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.diff-header h3 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 1.1rem;
+}
+
+.diff-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.diff-actions button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: filter 0.2s;
+}
+
+.diff-actions button:hover {
+  filter: brightness(1.1);
+}
+
+.reject-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.approve-btn {
+  background: #22c55e;
+  color: white;
+}
+
+.close-btn {
+  background: #4b5563;
+  color: white;
+}
+
+.diff-body {
+  flex: 1;
+  background: #1e1e1e;
+}

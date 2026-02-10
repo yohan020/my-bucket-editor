@@ -22,3 +22,13 @@ export interface BackupInfo {
     createdAt: Date;
     size: number;
 }
+
+export interface PullRequest {
+    id: string;
+    filePath: string;
+    guestEmail: string;
+    content: string; // Proposed content
+    message: string; // PR Description
+    timestamp: number;
+    status: 'pending' | 'approved' | 'rejected';
+}
