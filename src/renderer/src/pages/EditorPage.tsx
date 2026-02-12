@@ -503,7 +503,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                     modified={selectedPR.content}
                     language={detectLanguage(selectedPR.filePath)}
                     onApprove={() => socketRef.current?.emit('pr:approve', selectedPR.id)}
-                    onReject={() => socketRef.current?.emit('pr:reject', selectedPR.id)}
+                    onReject={(reason) => socketRef.current?.emit('pr:reject', { prId: selectedPR.id, reason })}
                     onClose={() => setSelectedPR(null)}
                 />
             )}

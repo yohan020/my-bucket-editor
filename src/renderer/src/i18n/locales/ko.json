@@ -102,7 +102,17 @@
     "alreadyPending": "이미 승인 요청을 보냈습니다. 호스트가 수락할 때까지 기다려주세요.",
     "alreadyRegistered": "이미 등록된 계정입니다. 로그인해주세요.",
     "prSentSuccess": "PR이 성공적으로 전송되었습니다!",
-    "prSentFailed": "PR 전송 실패"
+    "prSentFailed": "PR 전송 실패",
+    "prApprovedTitle": "PR 승인됨",
+    "prApproved": "PR이 승인되어 변경 사항이 반영되었습니다.",
+    "prRejectedTitle": "PR 거절됨",
+    "prRejected": "⛔ PR이 거절되었습니다."
+  },
+  "pr": {
+    "reviewTitle": "변경 사항 검토",
+    "rejectTitle": "거절 사유 입력",
+    "rejectReasonPlaceholder": "거절 사유를 입력하세요",
+    "confirmReject": "거절 확인"
   },
   "time": {
     "justNow": "방금 전",

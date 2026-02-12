@@ -101,7 +101,17 @@
     "alreadyPending": "すでにアクセス申請を送信しています。ホストが承認するまでお待ちください。",
     "alreadyRegistered": "このアカウントはすでに登録されています。ログインしてください。",
     "prSentSuccess": "PRが正常に送信されました！",
-    "prSentFailed": "PRの送信に失敗しました"
+    "prSentFailed": "PRの送信に失敗しました",
+    "prApprovedTitle": "PRが承認されました",
+    "prApproved": "PRが承認され、変更が適用されました。",
+    "prRejectedTitle": "PRが拒否されました",
+    "prRejected": "⛔ PRが拒否されました。"
+  },
+  "pr": {
+    "reviewTitle": "変更の確認",
+    "rejectTitle": "拒否理由の入力",
+    "rejectReasonPlaceholder": "拒否理由を入力してください",
+    "confirmReject": "拒否を確認"
   },
   "time": {
     "justNow": "たった今",
