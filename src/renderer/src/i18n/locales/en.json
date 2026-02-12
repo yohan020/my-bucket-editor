@@ -120,7 +120,33 @@
   },
   "login": {
     "title": "Login",
-    "guestLogin": "Guest Login"
+    "guestLogin": "Guest Login",
+    "hostLogin": "Host Login",
+    "enterPassword": "Please enter your password",
+    "passwordPlaceholder": "Password",
+    "loginBtn": "Login",
+    "forgotPassword": "Forgot Password?",
+    "passwordRequired": "Please enter your password.",
+    "passwordMismatch": "Password does not match.",
+    "totpRequired": "Please enter the 6-digit verification code.",
+    "totpInvalid": "Invalid verification code.",
+    "authError": "Authentication Error"
+  },
+  "recovery": {
+    "title": "🚑 Account Recovery",
+    "desc": "Enter the recovery code issued during setup.\nYour credentials will be reset.",
+    "placeholder": "XXXX-XXXX-XXXX",
+    "resetBtn": "Reset Credentials",
+    "cancel": "Cancel",
+    "success": "Authentication info reset. Please set a new password.",
+    "invalidCode": "Invalid recovery code."
+  },
+  "totp": {
+    "title": "🔐 Two-Factor Authentication",
+    "desc": "Enter the Google Authenticator code.",
+    "placeholder": "123456",
+    "verifyBtn": "Verify",
+    "back": "Back (Re-enter Password)"
   },
   "errors": {
     "connectionFailed": "Connection failed.",

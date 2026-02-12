@@ -126,7 +126,28 @@
     "enterPassword": "비밀번호를 입력하세요",
     "passwordPlaceholder": "비밀번호",
     "loginBtn": "로그인",
-    "forgotPassword": "비밀번호를 잊으셨나요?"
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "passwordRequired": "비밀번호를 입력해주세요.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "totpRequired": "6자리 인증 코드를 입력해주세요.",
+    "totpInvalid": "인증 코드가 올바르지 않습니다.",
+    "authError": "인증 오류"
+  },
+  "recovery": {
+    "title": "🚑 계정 복구",
+    "desc": "설정 시 발급받은 복구 코드를 입력하세요.\n인증 정보가 초기화됩니다.",
+    "placeholder": "XXXX-XXXX-XXXX",
+    "resetBtn": "초기화 실행",
+    "cancel": "취소",
+    "success": "인증 정보가 초기화되었습니다. 비밀번호를 다시 설정해주세요.",
+    "invalidCode": "잘못된 복구 코드입니다."
+  },
+  "totp": {
+    "title": "🔐 2단계 인증",
+    "desc": "Google Authenticator 코드를 입력하세요.",
+    "placeholder": "123456",
+    "verifyBtn": "인증 확인",
+    "back": "뒤로 (비밀번호 다시 입력)"
   },
   "errors": {
     "connectionFailed": "연결에 실패했습니다.",

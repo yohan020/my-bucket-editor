@@ -153,6 +153,7 @@ export default function ProjectItem({ project, isActive, onToggleServer, onOpenE
 
             {/* 유저 관리 모달 */}
             <UserManageModal
+                projectId={project.id}
                 port={project.port}
                 isOpen={userModalOpen}
                 onClose={() => setUserModalOpen(false)}
