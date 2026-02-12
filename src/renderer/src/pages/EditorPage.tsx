@@ -431,14 +431,29 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                         </div>
                     )}
                     {/* 에디터 */}
-                    <Editor
-                        height="100%"
-                        theme="vs-dark"
-                        language={language}
-                        defaultValue=""
-                        options={editorOptions}
-                        onMount={handleEditorMount}
-                    />
+                    {currentFile ? (
+                        <Editor
+                            height="100%"
+                            theme="vs-dark"
+                            language={language}
+                            defaultValue=""
+                            options={editorOptions}
+                            onMount={handleEditorMount}
+                        />
+                    ) : (
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '100%',
+                            color: '#666',
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }}>
+                            <div style={{ fontSize: '3rem' }}>📁</div>
+                            <div>{t('editor.selectFile')}</div>
+                        </div>
+                    )}
                 </main>
                 {/* 우측 패널 (접속자 목록) */}
                 {showUserPanel && (

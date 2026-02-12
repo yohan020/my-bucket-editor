@@ -51,7 +51,7 @@ export function startGatewayServer() {
 
     gatewayServer = http.createServer((req, res) => {
         const hostname = req.headers.host
-        console.log(`📡 [Gateway] Request: ${req.method} ${req.url} (Host: ${hostname})`)
+        // console.log(`📡 [Gateway] Request: ${req.method} ${req.url} (Host: ${hostname})`)
 
         if (!hostname) {
             console.error('❌ [Gateway] Missing Host Header')
@@ -75,14 +75,14 @@ export function startGatewayServer() {
         if (parts.length >= 3) {
             subdomain = parts[0].toLowerCase()
         } else {
-            console.warn(`⚠️ [Gateway] Cannot extract subdomain from host: ${hostname}`)
+            // console.warn(`⚠️ [Gateway] Cannot extract subdomain from host: ${hostname}`)
             // localhost:4000 같은 경우 서브도메인이 없음.
         }
 
         // 프로젝트 맵에서 포트 찾기
         targetPort = projectMap.get(subdomain)
         
-        console.log(`🔎 [Gateway] Routing '${subdomain}' -> Port ${targetPort || 'Not Found'}`)
+        // console.log(`🔎 [Gateway] Routing '${subdomain}' -> Port ${targetPort || 'Not Found'}`)
 
         if (targetPort) {
             // 프록시 수행
