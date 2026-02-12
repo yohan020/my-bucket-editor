@@ -41,6 +41,7 @@ export default function GuestEditorPage({ address, token, email, projectName, on
     const [fileTree, setFileTree] = useState<FileNode[]>([])
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [openTabs, setOpenTabs] = useState<string[]>([])  // 열린 탭 목록
+    const [language, setLanguage] = useState('plaintext')
     const [isConnected, setIsConnected] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
@@ -267,8 +268,28 @@ export default function GuestEditorPage({ address, token, email, projectName, on
         }
     }, [address, setupBinding, t])
 
+    // 파일 확장자로 언어 감지
+    const detectLanguage = (filePath: string): string => {
+        const ext = filePath.split('.').pop()?.toLowerCase()
+        const langMap: Record<string, string> = {
+            ts: 'typescript',
+            tsx: 'typescript',
+            js: 'javascript',
+            jsx: 'javascript',
+            json: 'json',
+            html: 'html',
+            css: 'css',
+            md: 'markdown',
+            py: 'python',
+        }
+        return langMap[ext || ''] || 'plaintext'
+    }
+
     // 파일 클릭 핸들러 (탭에 추가)
     const handleFileClick = (path: string) => {
+        currentFileRef.current = path
+        setLanguage(detectLanguage(path))
+
         // 탭에 없으면 추가
         setOpenTabs(prev => {
             if (!prev.includes(path)) {
@@ -282,6 +303,8 @@ export default function GuestEditorPage({ address, token, email, projectName, on
     // 탭 클릭 핸들러
     const handleTabClick = (path: string) => {
         if (currentFile === path) return
+        currentFileRef.current = path
+        setLanguage(detectLanguage(path))
         socketRef.current?.emit('file:read', path)
     }
 
@@ -464,13 +487,29 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                             </div>
                         </div>
                     )}
-                    <Editor
-                        height="100%"
-                        theme="vs-dark"
-                        defaultValue=""
-                        options={editorOptions}
-                        onMount={handleEditorMount}
-                    />
+                    {currentFile ? (
+                        <Editor
+                            height="100%"
+                            theme="vs-dark"
+                            language={language}
+                            defaultValue=""
+                            options={editorOptions}
+                            onMount={handleEditorMount}
+                        />
+                    ) : (
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '100%',
+                            color: '#666',
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }}>
+                            <div style={{ fontSize: '3rem' }}>📁</div>
+                            <div>{t('editor.selectFile')}</div>
+                        </div>
+                    )}
                 </main>
                 {/* 유저 패널 (접속자 목록) */}
                 {showUserPanel && (
