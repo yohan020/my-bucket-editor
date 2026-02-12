@@ -43,7 +43,7 @@ export default function LoginPage({ onLogin, onBack }: Props) {
 
     const handleLogin = async () => {
         if (!password) {
-            setError('비밀번호를 입력해주세요.')
+            setError(t('login.passwordRequired'))
             return
         }
 
@@ -51,7 +51,7 @@ export default function LoginPage({ onLogin, onBack }: Props) {
             const result = await window.api.auth.login(password)
             if (result.success) {
                 // 2FA 확인
-                const { enabled } = await window.api.auth.getTotpStatus()
+                const { enabled } = await (window.api.auth as any).getTotpStatus()
                 if (enabled) {
                     setStep('totp')
                     setError('')
@@ -59,7 +59,7 @@ export default function LoginPage({ onLogin, onBack }: Props) {
                     onLogin(username || 'Host')
                 }
             } else {
-                setError('비밀번호가 일치하지 않습니다.')
+                setError(t('login.passwordMismatch'))
             }
         } catch (e: any) {
             setError(e.message)
@@ -68,18 +68,18 @@ export default function LoginPage({ onLogin, onBack }: Props) {
 
     const handleTotpVerify = async () => {
         if (!totpCode || totpCode.length !== 6) {
-            setError('6자리 인증 코드를 입력해주세요.')
+            setError(t('login.totpRequired'))
             return
         }
         try {
-            const { isValid } = await window.api.auth.verifyTotp(totpCode)
+            const { isValid } = await (window.api.auth as any).verifyTotp(totpCode)
             if (isValid) {
                 onLogin(username || 'Host')
             } else {
-                setError('인증 코드가 올바르지 않습니다.')
+                setError(t('login.totpInvalid'))
             }
         } catch (e: any) {
-            setError('인증 오류')
+            setError(t('login.authError'))
         }
     }
 
@@ -88,12 +88,12 @@ export default function LoginPage({ onLogin, onBack }: Props) {
         try {
             const result = await window.api.auth.reset(recoveryCode)
             if (result.success) {
-                alert('인증 정보가 초기화되었습니다. 비밀번호를 다시 설정해주세요.')
+                alert(t('recovery.success'))
                 // 앱 리로드 또는 AuthSetup으로 이동 필요
                 // 여기서는 간단히 새로고침
                 window.location.reload()
             } else {
-                setRecoveryError('잘못된 복구 코드입니다.')
+                setRecoveryError(t('recovery.invalidCode'))
             }
         } catch (e: any) {
             setRecoveryError(e.message)
@@ -104,29 +104,28 @@ export default function LoginPage({ onLogin, onBack }: Props) {
         return (
             <div className="center-container">
                 <div className="login-card">
-                    <h1>🚑 계정 복구</h1>
-                    <p style={{ marginBottom: '20px', color: '#666' }}>
-                        설정 시 발급받은 복구 코드를 입력하세요.<br />
-                        인증 정보가 초기화됩니다.
+                    <h1>{t('recovery.title')}</h1>
+                    <p style={{ marginBottom: '20px', color: '#666', whiteSpace: 'pre-line' }}>
+                        {t('recovery.desc')}
                     </p>
                     <input
                         ref={recoveryInputRef}
                         type="text"
-                        placeholder="XXXX-XXXX-XXXX"
+                        placeholder={t('recovery.placeholder')}
                         value={recoveryCode}
                         onChange={e => setRecoveryCode(e.target.value.toUpperCase())}
                         autoFocus
                     />
                     {recoveryError && <p className="error-message">{recoveryError}</p>}
                     <button className="primary-btn full-width" onClick={handleRecovery}>
-                        초기화 실행
+                        {t('recovery.resetBtn')}
                     </button>
                     <button
                         className="secondary-btn full-width"
                         onClick={() => setShowRecovery(false)}
                         style={{ marginTop: '10px' }}
                     >
-                        취소
+                        {t('recovery.cancel')}
                     </button>
                 </div>
             </div>
@@ -186,15 +185,15 @@ export default function LoginPage({ onLogin, onBack }: Props) {
                     </>
                 ) : (
                     <>
-                        <h1 style={{ textAlign: 'center' }}>🔐 2단계 인증</h1>
+                        <h1 style={{ textAlign: 'center' }}>{t('totp.title')}</h1>
                         <p style={{ textAlign: 'center', color: '#888', marginBottom: '20px' }}>
-                            Google Authenticator 코드를 입력하세요.
+                            {t('totp.desc')}
                         </p>
 
                         <input
                             ref={totpInputRef}
                             type="text"
-                            placeholder="123456"
+                            placeholder={t('totp.placeholder')}
                             value={totpCode}
                             onChange={(e) => setTotpCode(e.target.value.replace(/[^0-9]/g, ''))}
                             onKeyDown={(e) => e.key === 'Enter' && handleTotpVerify()}
@@ -206,11 +205,11 @@ export default function LoginPage({ onLogin, onBack }: Props) {
                         {error && <p className="error-message">{error}</p>}
 
                         <button className="primary-btn full-width" onClick={handleTotpVerify}>
-                            인증 확인
+                            {t('totp.verifyBtn')}
                         </button>
 
                         <button className="secondary-btn full-width" onClick={() => { setStep('password'); setError(''); }} style={{ marginTop: '10px' }}>
-                            뒤로 (비밀번호 다시 입력)
+                            {t('totp.back')}
                         </button>
                     </>
                 )}

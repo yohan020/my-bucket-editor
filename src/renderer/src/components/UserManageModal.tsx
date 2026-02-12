@@ -15,12 +15,13 @@ interface PendingUser {
 }
 
 interface Props {
+    projectId: number
     port: number
     isOpen: boolean
     onClose: () => void
 }
 
-export default function UserManageModal({ port, isOpen, onClose }: Props) {
+export default function UserManageModal({ projectId, port, isOpen, onClose }: Props) {
     const { t } = useTranslation()
     const { showConfirm } = useModal()
     const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([])
@@ -30,11 +31,11 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
         if (isOpen) {
             loadUsers()
         }
-    }, [isOpen, port])
+    }, [isOpen, projectId])
 
     const loadUsers = async () => {
-        const approved = await window.api.getApprovedUsers(port)
-        const pending = await window.api.getPendingUsers(port)
+        const approved = await window.api.getApprovedUsers(projectId)
+        const pending = await window.api.getPendingUsers(projectId)
         setApprovedUsers(approved)
         setPendingUsers(pending)
     }
@@ -42,18 +43,18 @@ export default function UserManageModal({ port, isOpen, onClose }: Props) {
     const handleRemove = async (email: string) => {
         const confirmed = await showConfirm(`${t('common.delete')} ${email}?`)
         if (confirmed) {
-            await window.api.removeApprovedUser(port, email)
+            await window.api.removeApprovedUser(projectId, email)
             loadUsers()
         }
     }
 
     const handleApprove = async (email: string) => {
-        await window.api.approveUser(port, email)
+        await window.api.approveUser(projectId, email)
         loadUsers()
     }
 
     const handleReject = async (email: string) => {
-        await window.api.rejectUser(port, email)
+        await window.api.rejectUser(projectId, email)
         loadUsers()
     }
 

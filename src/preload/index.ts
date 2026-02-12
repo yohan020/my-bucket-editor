@@ -24,11 +24,11 @@ const api = {
   deleteProject: (projectId: number): Promise<any> => ipcRenderer.invoke('project:delete', projectId),
 
   // === 유저 목록 관련 API ===
-  getApprovedUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:list', port),
-  getPendingUsers: (port: number): Promise<any[]> => ipcRenderer.invoke('user:pending:list', port),
-  removeApprovedUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { port, email }),
-  approveUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:approve', { port, email }),
-  rejectUser: (port: number, email: string): Promise<any> => ipcRenderer.invoke('user:reject', { port, email }),
+  getApprovedUsers: (projectId: number): Promise<any[]> => ipcRenderer.invoke('user:list', projectId),
+  getPendingUsers: (projectId: number): Promise<any[]> => ipcRenderer.invoke('user:pending:list', projectId),
+  removeApprovedUser: (projectId: number, email: string): Promise<any> => ipcRenderer.invoke('user:remove', { projectId, email }),
+  approveUser: (projectId: number, email: string): Promise<any> => ipcRenderer.invoke('user:approve', { projectId, email }),
+  rejectUser: (projectId: number, email: string): Promise<any> => ipcRenderer.invoke('user:reject', { projectId, email }),
 
   // === 윈도우 포커스 API ===
   focusWindow: (): Promise<boolean> => ipcRenderer.invoke('window:focus'),

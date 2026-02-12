@@ -120,7 +120,33 @@
   },
   "login": {
     "title": "ログイン",
-    "guestLogin": "ゲストログイン"
+    "guestLogin": "ゲストログイン",
+    "hostLogin": "ホストログイン",
+    "enterPassword": "パスワードを入力してください",
+    "passwordPlaceholder": "パスワード",
+    "loginBtn": "ログイン",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "passwordRequired": "パスワードを入力してください。",
+    "passwordMismatch": "パスワードが一致しません。",
+    "totpRequired": "6桁の認証コードを入力してください。",
+    "totpInvalid": "認証コードが正しくありません。",
+    "authError": "認証エラー"
+  },
+  "recovery": {
+    "title": "🚑 アカウント復旧",
+    "desc": "設定時に発行された復旧コードを入力してください。\n認証情報がリセットされます。",
+    "placeholder": "XXXX-XXXX-XXXX",
+    "resetBtn": "リセット実行",
+    "cancel": "キャンセル",
+    "success": "認証情報がリセットされました。パスワードを再設定してください。",
+    "invalidCode": "無効な復旧コードです。"
+  },
+  "totp": {
+    "title": "🔐 2段階認証",
+    "desc": "Google Authenticatorのコードを入力してください。",
+    "placeholder": "123456",
+    "verifyBtn": "認証確認",
+    "back": "戻る (パスワード再入力)"
   },
   "errors": {
     "connectionFailed": "接続に失敗しました。",
