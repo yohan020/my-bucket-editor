@@ -258,6 +258,23 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             }
         })
 
+        socket.on('pr:approved', () => {
+            showAlert({
+                title: t('guest.prApprovedTitle', 'PR 승인됨'),
+                message: t('guest.prApproved', 'PR이 승인되어 변경 사항이 반영되었습니다.'),
+                type: 'success'
+            })
+        })
+
+        socket.on('pr:rejected', ({ prId, reason }: { prId: string, reason?: string }) => {
+            console.log('🚫 PR 거절됨:', prId, reason)
+            showAlert({
+                title: t('guest.prRejectedTitle', 'PR 거절됨'),
+                message: t('guest.accessRejected') + (reason ? `\n\n📝 사유: ${reason}` : ''),
+                type: 'warning'
+            })
+        })
+
         return () => {
             socket.off('pr:create:response')
             socket.disconnect()

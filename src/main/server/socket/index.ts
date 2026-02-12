@@ -254,10 +254,16 @@ export function setupSocketHandlers(io: Server, projectPath: string, projectId: 
             }
         })
 
-        socket.on('pr:reject', (prId: string) => {
-            console.log('🚫 PR 거절:', prId)
+        socket.on('pr:reject', ({ prId, reason }: { prId: string, reason?: string }) => {
+            console.log('🚫 PR 거절:', prId, '사유:', reason)
+            
+            // PR 상태 업데이트 (Store에서 삭제하기 전에 업데이트해서 알림 보낼 때 사용 가능하지만, 
+            // 현재 removePR은 바로 삭제하므로, 알림 payload에 실어 보냄)
+            
             removePR(projectPath, prId)
-            io.emit('pr:rejected', prId)
+            
+            // 거절 알림에 사유 포함
+            io.emit('pr:rejected', { prId, reason })
             io.emit('pr:list:update', getPRs(projectPath)) // 목록 갱신
             socket.emit('pr:reject:response', { success: true })
         })

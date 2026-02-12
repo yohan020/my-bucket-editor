@@ -101,7 +101,17 @@
     "alreadyPending": "You have already requested access. Please wait for the host to approve.",
     "alreadyRegistered": "This account is already registered. Please log in.",
     "prSentSuccess": "PR Sent Successfully!",
-    "prSentFailed": "PR Failed to Send"
+    "prSentFailed": "PR Failed to Send",
+    "prApprovedTitle": "PR Approved",
+    "prApproved": "PR has been approved and changes applied.",
+    "prRejectedTitle": "PR Rejected",
+    "prRejected": "⛔ PR was rejected."
+  },
+  "pr": {
+    "reviewTitle": "Review Changes",
+    "rejectTitle": "Rejection Reason",
+    "rejectReasonPlaceholder": "Enter reason for rejection",
+    "confirmReject": "Confirm Reject"
   },
   "time": {
     "justNow": "Just now",

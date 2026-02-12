@@ -7,6 +7,7 @@ export interface PullRequest {
     message: string; // Commit message / Description
     timestamp: number;
     status: 'pending' | 'approved' | 'rejected';
+    review?: string; // Rejection reason
 }
 
 const prStore = new Map<string, PullRequest[]>(); // ProjectPath -> PR[]

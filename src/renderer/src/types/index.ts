@@ -31,4 +31,5 @@ export interface PullRequest {
     message: string; // PR Description
     timestamp: number;
     status: 'pending' | 'approved' | 'rejected';
+    review?: string; // Rejection reason
 }
