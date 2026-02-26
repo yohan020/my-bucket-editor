@@ -289,7 +289,7 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             console.log('🚫 PR 거절됨:', prId, reason)
             showAlert({
                 title: t('guest.prRejectedTitle', 'PR 거절됨'),
-                message: t('guest.accessRejected') + (reason ? `\n\n📝 사유: ${reason}` : ''),
+                message: t('guest.prRejected', '⛔ PR이 거절되었습니다.') + (reason ? `\n\n📝 사유: ${reason}` : ''),
                 type: 'warning'
             })
         })
@@ -503,7 +503,7 @@ export default function GuestEditorPage({ address, token, email, projectName, on
                                 if (pr.status === 'rejected') {
                                     showAlert({
                                         title: t('guest.prRejectedTitle', 'PR 거절됨'),
-                                        message: t('guest.accessRejected') + (pr.review ? `\n\n📝 사유: ${pr.review}` : ''),
+                                        message: t('guest.prRejected', '⛔ PR이 거절되었습니다.') + (pr.review ? `\n\n📝 사유: ${pr.review}` : ''),
                                         type: 'warning'
                                     })
                                 } else if (pr.status === 'approved') {
