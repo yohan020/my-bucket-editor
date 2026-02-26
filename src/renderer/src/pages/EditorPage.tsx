@@ -46,6 +46,7 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
     const [prList, setPrList] = useState<PullRequest[]>([])
     const [selectedPR, setSelectedPR] = useState<PullRequest | null>(null)
     const [originalContent, setOriginalContent] = useState<string>('')
+    const [hasNewPR, setHasNewPR] = useState(false)
 
     const socketRef = useRef<Socket | null>(null)
     const yDocRef = useRef<Y.Doc | null>(null)
@@ -208,12 +209,8 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
         })
 
         socket.on('pr:notification', (pr: PullRequest) => {
-            // 알림 표시 (Toast가 없으니 console.log)
             console.log('🔔 새 PR 도착:', pr.message)
-            // PR 탭으로 전환할지 여부는 선택사항
-            if (leftPanelTab !== 'pr') {
-                // 배지 표시 등을 위해 상태 업데이트 (여기선 생략)
-            }
+            setHasNewPR(true)
         })
 
         socket.on('pr:approved', () => {
@@ -367,9 +364,22 @@ export default function EditorPage({ projectName, projectPath, port, onBack }: P
                         </button>
                         <button
                             className={`tab-btn ${leftPanelTab === 'pr' ? 'active' : ''}`}
-                            onClick={() => setLeftPanelTab('pr')}
+                            onClick={() => { setLeftPanelTab('pr'); setHasNewPR(false) }}
+                            style={{ position: 'relative' }}
                         >
                             🚀 PRs ({prList.length})
+                            {hasNewPR && (
+                                <span style={{
+                                    position: 'absolute',
+                                    top: '4px',
+                                    right: '4px',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#ef4444',
+                                    boxShadow: '0 0 4px #ef4444'
+                                }} />
+                            )}
                         </button>
                     </div>
 
