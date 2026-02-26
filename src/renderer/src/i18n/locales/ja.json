@@ -111,7 +111,8 @@
     "reviewTitle": "変更の確認",
     "rejectTitle": "拒否理由の入力",
     "rejectReasonPlaceholder": "拒否理由を入力してください",
-    "confirmReject": "拒否を確認"
+    "confirmReject": "拒否を確認",
+    "rejectLabel": "拒否理由"
   },
   "time": {
     "justNow": "たった今",

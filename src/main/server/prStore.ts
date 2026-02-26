@@ -27,6 +27,18 @@ export const getPR = (projectPath: string, prId: string): PullRequest | undefine
     return list.find(p => p.id === prId);
 };
 
+export const updatePRStatus = (projectPath: string, prId: string, status: 'approved' | 'rejected', review?: string): void => {
+    const list = getPRs(projectPath);
+    const prIndex = list.findIndex(p => p.id === prId);
+    if (prIndex !== -1) {
+        list[prIndex].status = status;
+        if (review) {
+            list[prIndex].review = review;
+        }
+        prStore.set(projectPath, list);
+    }
+};
+
 export const removePR = (projectPath: string, prId: string): void => {
     const list = getPRs(projectPath);
     const newList = list.filter(p => p.id !== prId);

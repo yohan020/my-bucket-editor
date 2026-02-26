@@ -5,7 +5,7 @@ import { verifyToken } from '../utils/jwt'
 import { loadApprovedUsers } from '../../utils/userStore'
 import * as Y from 'yjs'
 import { randomUUID } from 'crypto'
-import { addPR, getPRs, removePR, PullRequest, getPR } from '../prStore'
+import { addPR, getPRs, removePR, updatePRStatus, PullRequest, getPR } from '../prStore'
 
 export function setupSocketHandlers(io: Server, projectPath: string, projectId: number): void {
     // [Scope Fix] 각 서버 인스턴스마다 독립적인 상태 관리를 위해 함수 내부로 이동
@@ -257,14 +257,12 @@ export function setupSocketHandlers(io: Server, projectPath: string, projectId: 
         socket.on('pr:reject', ({ prId, reason }: { prId: string, reason?: string }) => {
             console.log('🚫 PR 거절:', prId, '사유:', reason)
             
-            // PR 상태 업데이트 (Store에서 삭제하기 전에 업데이트해서 알림 보낼 때 사용 가능하지만, 
-            // 현재 removePR은 바로 삭제하므로, 알림 payload에 실어 보냄)
-            
-            removePR(projectPath, prId)
+            // PR 상태 업데이트 (삭제하지 않고 상태만 변경)
+            updatePRStatus(projectPath, prId, 'rejected', reason)
             
             // 거절 알림에 사유 포함
             io.emit('pr:rejected', { prId, reason })
-            io.emit('pr:list:update', getPRs(projectPath)) // 목록 갱신
+            io.emit('pr:list:update', getPRs(projectPath)) // 목록 갱신 (거절된 항목도 포함됨)
             socket.emit('pr:reject:response', { success: true })
         })
     })
