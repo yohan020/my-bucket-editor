@@ -111,7 +111,8 @@
     "reviewTitle": "Review Changes",
     "rejectTitle": "Rejection Reason",
     "rejectReasonPlaceholder": "Enter reason for rejection",
-    "confirmReject": "Confirm Reject"
+    "confirmReject": "Confirm Reject",
+    "rejectLabel": "Reason"
   },
   "time": {
     "justNow": "Just now",

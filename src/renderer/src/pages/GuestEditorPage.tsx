@@ -12,6 +12,8 @@ import { getFileIconUrl } from '../utils/fileIcons'
 import { updateCursorStyles, cleanupCursorStyles } from '../utils/cursorStyles'
 import { useModal } from '../contexts/ModalContext'
 import PRCreateModal from '../components/PRCreateModal'
+import PRListPanel from '../components/PRListPanel'
+import { PullRequest } from '../types'
 
 const editorOptions = {
     automaticLayout: true,
@@ -50,8 +52,10 @@ export default function GuestEditorPage({ address, token, email, projectName, on
     const [onlineUsers, setOnlineUsers] = useState<string[]>([])
     const [approvedUsers, setApprovedUsers] = useState<{ email: string }[]>([])
 
-    // PR 모달 상태
+    // PR 모달 상태 & 목록
     const [isPRModalOpen, setIsPRModalOpen] = useState(false)
+    const [leftPanelTab, setLeftPanelTab] = useState<'files' | 'pr'>('files')
+    const [prList, setPrList] = useState<PullRequest[]>([])
 
     const socketRef = useRef<Socket | null>(null)
     const currentFileRef = useRef<string | null>(null)
@@ -242,6 +246,21 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             }
         })
 
+        // PR 목록 요청
+        socket.emit('pr:list')
+
+        socket.on('pr:list:response', (data) => {
+            if (data.success) {
+                // 내 PR만 필터링하거나 전체 보여주기 (현재는 전체)
+                // 필요 시: setPrList(data.prs.filter(pr => pr.guestEmail === email))
+                setPrList(data.prs)
+            }
+        })
+
+        socket.on('pr:list:update', (prs) => {
+            setPrList(prs)
+        })
+
         socket.on('pr:create:response', (data) => {
             if (data.success) {
                 showAlert({
@@ -277,6 +296,10 @@ export default function GuestEditorPage({ address, token, email, projectName, on
 
         return () => {
             socket.off('pr:create:response')
+            socket.off('pr:list:response')
+            socket.off('pr:list:update')
+            socket.off('pr:approved')
+            socket.off('pr:rejected')
             socket.disconnect()
             bindingRef.current?.destroy()
             yDocRef.current?.destroy()
@@ -448,18 +471,54 @@ export default function GuestEditorPage({ address, token, email, projectName, on
             </header>
             <div className="editor-main">
                 <aside className="file-tree">
-                    <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{t('editor.fileExplorer')}</span>
+                    <div className="sidebar-tabs">
+                        <button
+                            className={`tab-btn ${leftPanelTab === 'files' ? 'active' : ''}`}
+                            onClick={() => setLeftPanelTab('files')}
+                        >
+                            {t('editor.fileExplorer')}
+                        </button>
+                        <button
+                            className={`tab-btn ${leftPanelTab === 'pr' ? 'active' : ''}`}
+                            onClick={() => setLeftPanelTab('pr')}
+                        >
+                            🚀 PRs
+                        </button>
                         <button
                             className="icon-btn"
                             onClick={() => socketRef.current?.emit('file:tree')}
                             title="Reload"
-                            style={{ fontSize: '0.9rem', padding: '2px 5px' }}
+                            style={{ fontSize: '0.9rem', padding: '2px 5px', marginLeft: 'auto' }}
                         >
                             🔄
                         </button>
                     </div>
-                    <FileTree tree={fileTree} onFileClick={handleFileClick} />
+
+                    {leftPanelTab === 'files' ? (
+                        <FileTree tree={fileTree} onFileClick={handleFileClick} />
+                    ) : (
+                        <PRListPanel
+                            prs={prList}
+                            onSelect={(pr) => {
+                                if (pr.status === 'rejected') {
+                                    showAlert({
+                                        title: t('guest.prRejectedTitle', 'PR 거절됨'),
+                                        message: t('guest.accessRejected') + (pr.review ? `\n\n📝 사유: ${pr.review}` : ''),
+                                        type: 'warning'
+                                    })
+                                } else if (pr.status === 'approved') {
+                                    showAlert({
+                                        title: t('guest.prApprovedTitle', 'PR 승인됨'),
+                                        message: t('guest.prApproved', 'PR이 승인되어 변경 사항이 반영되었습니다.'),
+                                        type: 'success'
+                                    })
+                                } else {
+                                    // Pending 상태일 때 (내용 확인 등? 현재는 별도 액션 없음)
+                                    // 추후 Guest가 본인의 PR 내용을 다시 볼 수 있게 할 수도 있음
+                                }
+                            }}
+                        />
+                    )}
                 </aside>
                 <main className="editor-container">
                     {/* 탭 바 */}
